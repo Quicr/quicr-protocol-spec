@@ -15,7 +15,7 @@
             <use xlink:href="#4" transform="matrix(640,0,0,480,39.4688,51.5233)"/>
           </g>
         </defs>
-        <use xlink:href="#6" style="fill:#a9a9a9;fill-opacity:1;fill-rule:evenodd;opacity:1;stroke:none;"/>
+        <use xlink:href="#6" style="fill:#aaaaaa;fill-opacity:1;fill-rule:evenodd;opacity:1;stroke:none;"/>
       </g>
     </defs>
     <use xlink:href="#2"/>

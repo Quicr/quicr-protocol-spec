@@ -1,5 +1,5 @@
 %%%
-title = "Media Devlivery over QUIC"
+title = "QuicR - Media Devlivery Protocol over QUIC"
 abbrev = "quicr"
 ipr= "trust200902"
 area = "transport"
@@ -32,13 +32,9 @@ organization = "cisco"
 
 {{abstract.md}}
 
-
 {mainmatter}
 
-
 {{moq-arch.md}}
-
-{{naming.md}}
 
 {backmatter}
 
@@ -46,6 +42,4 @@ organization = "cisco"
 # Acknowledgments
 
 {{contributors.md}}
-
-
 
