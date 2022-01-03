@@ -1,3 +1,2 @@
-
-Thanks you to Suhas Nandakumar for contributions and suggestions to this specification.
+Thanks to <todo> for contributions and suggestions to this specification.
 
