@@ -70,7 +70,11 @@ Application component is scoped under a given Domain/Origin. This component is f
 Example: In this example, the domain component identifies acme.meeting.com domain, the application compoment identifies an instance of a meeting  under this domain, say "meeting123", and one of many meida streams, say camera stream, from the user "alice"
     
      ```quicr://acme.meeting.com/meeting123/alice/cam5/```
-    
+
+`A> Above representation of the name to be considered as application input and not
+the form that gets encodeded. A given application MAY choose a different way to 
+represent the name at the application layer. For QuicR messages names are represented
+as integers`.    
 
 Names within QuicR should adhere to following constraints:
 
@@ -79,6 +83,7 @@ Names within QuicR should adhere to following constraints:
 * Names should enable data lookup at the relays based on partial as well as whole names.
 
 ## Name Discovery
+
 Names are discovered via manifests. The role of the manifest is to identify the names as well as aspects pertaining to the associated data in a given usage context of the application. The content of Manifest is application defined and end to end encrypted. The manifest is owned by the application's origin server and are accessed as a protected resources by the authorized QuicR clients. The QuicR protocol treats Manifests as first level named object, thus allowing for clients to subscribe for the purposes of bootstrapping into the session as well as to follow  manifest changes during a session [ new members joining a conference for example].
 
 [todo should the maifest be end to end encrypted ?]
@@ -396,6 +401,7 @@ Participants who wish to receive media from a given meeting in a web conference 
 
 ## API Considerations
 QuicR client participating in a realtime conference has few options at the API level to choose when published data :
+
 * When sending video IDR data, ```IS_SYNC_POINT``` is set to true.
 * When sending data for a layer video codec, ```IS_RELIABLE``` option can be set to true for certain layers. Also the priority levels between the layer may be adjusted to report relative importance.
 * Selectively retranmissions can be enbaled based on the importance of the data.
@@ -630,10 +636,6 @@ A given origin relay may actually simply be fronting other relays behind it and 
 
 
 
-
-
-# Acknowledgements
-Thanks to TODO for review and contributions.
 
 
 # TODO

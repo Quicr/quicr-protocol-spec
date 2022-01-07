@@ -19,13 +19,6 @@ fullname="Cullen Jennings"
 organization = "cisco"
   [author.address]
   email = "fluffy@iii.ca"
-[[author]]
-initials="S."
-surname="Nandakumar"
-fullname="Suhas Nandakumar"
-organization = "cisco"
-  [author.address]
-  email = "snandaku@cisco.com"
 %%%
 
 .# Abstract
