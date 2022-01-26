@@ -333,12 +333,12 @@ Entities supporting Relay Function may decide to support such functionality by s
 
 The Origin server within the QuicR architecture performs the following logical roles
  
- - NamedDataIndex Server : NameDataIndex is an authorized server for a given Origin and can be a log- ical component of the Origin server. This component enables discovery and distribution of names within the QuicR architecture. Names and the associated application specific metadata are distributed via containers called Manifests. See
+ - NamedDataIndex Server : NameDataIndex is an authorized server for a given Origin and can be a logical component of the Origin server. This component enables discovery and distribution of names within the QuicR architecture. Names and the associated application specific metadata are distributed via containers called Manifests. See
 {#Naming} for furhter detials on names and manifests.
 
- - Relay Function - See Section on Relats
+ - Relay Function - Optionally an Origin server can support relay functionality and thus support publish/subscribe procedures. However, QuicR can perform with origin server not performing relay functions.
 
- - Application specific functionality 
+ - Application specific functionality.
 
 # QUIC Mapping
 
