@@ -45,20 +45,17 @@ It must be obvious by now that QuicR architetcure uses similar concepts and deli
 
 * To support low latency the granulaity of named objects in terms of duration need to be quite small making it complicated for clients to request each object individually. QuicR uses a subcription semantic along with wildcard names to simplify and speed object delivery
 
-* QuicR enables applications operating in an ultra latency mode to use Quic datagram rather than streams for their media/object delivery. This removes the head-of-line blocking issue as well as enabling the use of resiliency mechanisms that are more suitable for low latency e.g. use of FEC along with selectiveretransmissions. Note that QuicR allow for both datagram and stream usage based on the latency requirements.
+* QuicR enables applications operating in an ultra latency mode to use Quic datagram rather than streams for their media/object delivery. This removes the head-of-line blocking issue as well as enabling the use of resiliency mechanisms that are more suitable for low latency e.g. use of FEC along with selectiveretransmissions. Note that QuicR allows for both Quic datagram and stream usage based on the latency requirements.
 
 * QuicR associates a TTL to each published object hence enabling relays to dynamically manage their caches
 
 * Unlike streaming architectures where media contribution and media distribution are treated differently which makes perfect sense for VoD applications, QuicR is used for both contribution and distribution as the split does not exist for interactive communication.  
 
-* QuicR allows clients to subscribe to objects sourced from different publishers with delivery coming directly from publishers. In this architetcure an origin server plays the role of managing the objects' name space and delegating and authorizing publishers to use specific object names. This separation of object names ownership, delegatin and authorization from the actual delivery of objects further help in reducing latency as data/media get sourced directly from conference participants without the need to get media first to a centralized server.
+* QuicR allows clients to subscribe to objects sourced from different publishers with delivery coming directly from publishers. In this architetcure an origin server plays the role of managing the objects' name space and delegating and authorizing publishers to use specific object names. This separation of object names ownership, delegatin and authorization from the actual delivery of objects further help in reducing latency as data/media get sourced directly from conference participants without the need to get media first to a centralized server. Standard steaimng setups where the origin server also acts as the mdeia publisher is also supported
 
-* QuicR allows object names to be delegated to multiple publishers. Consider the scenario where a client needs to subscribe to the video associated with the current speaker. An efficient way of implementing such a scenario is for current speakers to publish their video using a name reserved for "active speaker" and for clients to subscribe to the "active speaker" name. This scenario requires multiple clients to be able to publish media using the same name.
+* QUIC's current congestion control mechanisms needs to be evaluated for efficacy in low latency interactive real-time contexts. There needs to be a way to negotiate the congestion control algorithm to be used per connection to allow algoithms that support different classes of applications.
 
-* For clients to be able to efficiently subscribe to data, the realys need to know about synchronization objects from which delivery must start in order for subscribers to consume the data (e.g. video reference frames). In curret streaming standards where the client requests specific objects the relay network does not need to be aware of such synchronization objects. 
-
-* Current congestin control algorithms are not very friendly to interactive realtime applications where transport protocol stacks can introduce significant latencies in the case of congestion. As part of QuicR work a suitable congestion mechansims will be used for low latency object delivery
-
+* QuicR allows publishers to associate a priority with objects. Priorities can help the delivery network and the subscribers to make decisions about resiliency, latency,drops etc. 
 
 
 # Architecture
