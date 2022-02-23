@@ -2,20 +2,22 @@
 
 # Introduction
 
-This outlines the design for QuicR, a media delivery protocol for applications that needs real time and/or near real-time data delivery experiences. It is based on a publish/subscribe metaphor where client endpoints publish and subscribe to data that is sent to, and received from, relays in the cloud. The information subscribed to is named such that this forms an overlay information centric network.
+Interactive realtime applications ,such as interactive communication systems, have very strict requirements around ultra low latency. Such applications create their own application-specific delivery network over which such ultra latency requirements can be met. Realtime transport protocols such as RTP provide the basic elements needed for realtime communication, both contribution and distribution, while leaving aspects such as resiliency and congestion control to be provided by each application.
 
-Typical usecases would be a conferencing applications (audio conferencing, webinars) that demand low latencies at larger scale (in terms of participants),  where for each endpoint subscribe to the media/data from each of the other participants in the conference and at the same time publish their media/data. The cloud device that receives the subscriptions and distributes data is called a Relay and is similar to an SFU in the audio/video uses cases. QuicR is pronounced something close to “quicker” but with more of a pirate "arrrr" at the end.
+On the other hand, media streaming applications are much more tolerant to latency and require highly scalable media distribution. Such applications leverage existing CDN networks ,used for optimizing WEB delivery, to distribute media using standards such as HLS and MPEG-DASH.
 
-The QuicR protocol takes care of transmitting named data from the Publisher to the Relay. It supports services (with the support of underlying transport, where necessary) to deal with detecting and limiting the bandwidth available, congestion control, fragmentation and reassembly, and prioritization of data. The maximum lifetime of data can be controlled and important data can be marked for retransmission and so on. It is designed to be NAT and firewall traversal friendly as well as high speed implementations in relays and use with load balancers. QuicR relay forwards the named data that was sent to it to all the subscribers for that data. Data is named such that it is unique for the relay and scoped to a origin. Subscriptions can include a form of wildcarding to the named data.
+Recently new use cases have emerged requiring higher scalability of delivery for interactive realtime applications and much lower latency for streaming applications. 
 
-The design is usable for sending media between a set of participants in a game or video call with under a hundred milliseconds of latency and meets needs of web conferencing systems. The design can also be used for large scale low latency streaming to millions of participants with latency under a few hundred milliseconds. It can also be used as low latency publish/subscribe system for real time in systems such as messaging and IoT.
+This document outlines a unified architetcure for data delivery that enables a wide range of realtime applications with different resiliency and latency needs. The architecture defines and uses QuicR, a delivery protocol that  is based on a publish/subscribe metaphor where client endpoints publish and subscribe to named data that is sent to, and received from, relays that forms an overlay delivery network similar to what CDN provides today. QuicR is pronounced something close to “quicker” but with more of a pirate "arrrr" at the end.
 
-In the simple case, an web application could have a single server implementing Relay function in the cloud that forwards packets between users in a video conference. The cloud could also have multiple relays. QuicR is designed to make it easy to implement stateless relays so that fail over could happen between relays with
-minimal impact to the clients and relays can redirect a client to a different relay. It should allow for design that support high speed forwarding with ASICs, or NIC cards with on card processing, or use intel DPDK. Relay can also be chained so that a relay in a CDN network gets one copy of data from the central cloud data center and can then forward it to many clients that use that CDN. This approach can be extended to put relays very close to clients in 5G networks and put relays in home routers or enterprise branch office that can be automatically discovered. The use of a relay between the WIFI and WAN allows for different strategies for reliability and congestion control to happen on the WAN and WIFI which can improve the overall end to end user experience.
+A typical usecase is an interactive communication application, e.g. video conferencing, where each endpoint in the conference subscribes to the media from each of the other participants in the conference and at the same time publishes its own media. The cloud device that receives the subscriptions and distributes media is called a Relay and is similar to an application-independent SFU in the audio/video conferncing uses cases. 
 
-The development of the protocol is based on optimizing the end user experience for the person using applications built with QuicR. It is not optimized to provide the highest average throughput of data.
+The QuicR protocol takes care of transmitting named data from the Publisher to the Relay and from the Relay to all the subscribers for the data. It provides transport services selected and tuned based on application requirements (with the support of underlying transport, where necessary) such as detecting available bandwidth, fragmentation and reassembly, resiliency, congestion control and prioritization of data delivery based on data lifetime and importance of data. It is designed to be NAT and firewall traversal friendly and can be upfronted  with load balancers. Data is named such that it is unique for the relay/delivery network and scoped to an application. Subscriptions can include a form of wildcarding to the named data.
 
-In some settings the relay  can also be directly connected to a backend to inject published data or receive subscribes that trigger other backend logic.
+The design supports sending media and other named objects between a set of participants in a game or video call with under a hundred milliseconds of latency and meets the needs of web conferencing systems. The design can also be used for large scale streaming to millions of participants with latency ranging from a few seconds to under a few hundred milliseconds based on applications needs. It can also be used as low latency publish/subscribe system for real time systems such as messaging and IoT.
+
+In the simplest case, a web conferencing application could use a single relay to forward packets between users in a video conference. However a more typical scenario would have a  delivery network made of multiple relays spread across several points of presence. QuicR is designed to make it easy to implement stateless relays so that fail over could happen between relays with
+minimal impact to the clients and relays can redirect a client to a different relay. 
 
 # Contributing
 
@@ -29,32 +31,61 @@ All significant discussion of development of this protocol is in the GitHub issu
 
 * Publisher: An endpoint that sends named data to a Relay. [ also referred to as producer of the data]
 
-* Subscriber: An endpoint that subscribes to anmed data and receives data. Relays can act as subscribers to other relays. Subscribers can also be referred to consumers of the data.
+* Subscriber: An endpoint that subscribes to anmed data and receives data. Relays can act as subscribers to other relays. Subscribers can also be referred to as consumers of the data.
 
 * Client/QuicR Client: An endpoint that acts as a Publisher, Subscriber, or both. May also implement a Relay Function in certain contexts.
 
 * Data: Application level chunk of Data that has a unique Name, a limited lifetime, priority and is transported via this protocol.
 
+* Origin server: Component managing the QuicR name space for a specific application and is responsible for establishing trust between clients and relays. Origin servers can implement other QuicR functions.
+
+# QuicR characteristics and its Relationship to existing streaming standards
+
+[To DO] Shold we say something about RTP!
+
+It must be obvious by now that QuicR and its architetcure uses similar concepts and delivery mechanisms to those used by streaming standards such as HLS and MPEG-DASH. Specifically the use of a CDN-like delivery network, the use of named objects and the receiver-triggered media/data delivery. However there are fundamental characteristics that QuicR provides to enable ultra low latency delivery for interactive applications such as conferncing and gaming. 
+
+* To support low latency the granulaity of delivered objects ,in terms of time duration, need to be quite small making it complicated for clients to request each object individually. QuicR uses a publish and subcription semantic along with a wildcard name format to simplify and speed object delivery. 
+
+* Some realtime applications operating in ultra latency mode require immediate object delivery once objects are avaiable without having to wait for previous objects that have not yet been delivered due to network loss or out of order network delivery. QuicR eliminates this head-of-line blocking issue by allowing applications to use Quic datagrams for object delivery. Note that QuicR allows for both Quic datagram and stream usage based on applicatio's latency requirements.
+
+* QuicR supports resiliency mechanisms that are more suitable for low latency realtime delivery such as FEC and selective retransmission. 
+
+* QUIC's current congestion control algorithms need to be evaluated for efficacy in low latency interactive real-time contexts specially when it comes to mechanisms such as slow start and multiplicative decrease. Based on the results of the evaluation work, QuicR can select the congestion control algorithm suitable for the application's class.
+
+* QuicR associates a TTL to each published object hence enabling relays to dynamically manage their caches
+
+* Unlike streaming architectures where media contribution and media distribution are treated differently, QuicR can be used for both object contribution/publishing and distribution/subscribing as the split does not exist for interactive communication.  
+
+* QuicR supports "truncated" delivery where objects flow directly from publishers to subscribers through the relay delivery network without having to be routed through the origin server. In this architetcure the origin server plays the role of managing the objects' name space and delegating and authorizing publishers to use specific object names. This separation of object names ownership, delegatin and authorization from the actual delivery paths of objects further help reducing latency. Standard steaimng setups where the origin server also acts as the mdeia publisher is also supported
+
+* QuicR allows publishers to associate a priority with objects. Priorities can help the delivery network and the subscribers to make decisions about resiliency, latency,drops etc. 
+
+* QuicR is designed so that objects are encryoted end-to-end and will pass transparently through the delivery network. Any information required by the delivery network, e.g. object priority, will be included as part of a  meta-data that uses a security context separate from that used for the object.
 
 # Architecture
 
 ## Problem Space
 
-This is design for applications such as voice and video system that are deployed in the cloud, games systems, multiuser AR/VR applications, and IoT sensor that produce real time data. It is designed for endpoints with between 0.1 and 10 mbps connection to the Internet that have a need for real time data transports. The main characteristic of real time data is that it is not useful if it is takes longer than some fixed amount of time to deliver. 
+[To Do] Need work
+
+This architetcure is designed for applications such as video communication systems, video streaming systems, games systems, multiuser AR/VR applications, and IoT sensor that produce real time data. It is designed for endpoints with between 0.1 and 10 mbps connection to the Internet that have a need for real time data transports. The main characteristic of real time data is that it is not useful if it is takes longer than some fixed amount of time to deliver. 
 
 The client can be behind NATs and firewalls and will often be on a WIFI for cellular network. The Relays need to have a public IP address, or at least an IP address reachable by all the clients they serve, but can be behind firewalls and load balancers.
 
 ## Components
 
 !---
-![QuicR](arch.png "QuicR Architectural Components")
+![QuicR](simple-arch.png "QuicR Architectural Components")
 !---
 
-Above is one way to envision an end to end system architecture for QuicR based deploymets which is formed of the following roles.
+Above diagram shows the various components/roles making the QuicR architecture and how it can be leveraged by two different classes of applications; a streaming app and a communication app.
 
-[[todo explain the picture ]]
+[[todo explain the picture including the various components of publcishers, subscribers, origin server]]
 
-# Names and Named Data
+# Names and Named Objects
+
+[Q: Is this the right level of derails for this draft?]
 
 Names are basic elements with in the QuicR architecture and they uniquely identify objects. Named objects can be cached in relays in a way CDNs cache resources and thus can obtain similar benifits such caching mechanisms would offer.
 
@@ -96,9 +127,17 @@ quicr://domain/<application-static-component>/manifest
 
 Also to note, a given application might provide non QuicR mechanisms to retrieve the manifest. Such mechanisms are out of scop and can be used complementary to the approaches defined in this specification.
 
-## Named Objects
+## QuicR media objects
 
 The objects that names point to are application specific. The granularity of such data ( say media frame, fragment, datum) and its frequency are fully specified by a given application and they need to be opaque for relays/in-transit caches. The data objects are end-to-end encrypted.
+
+[To Do] Should we do some hand waving here about mapping media into objects and talk about synchronization point trade-offs etc.?
+
+
+THAT IS IT. WE COULD STOP THE DRAFT HERE AND SEPARATE THE REST INTO A PROTICOL SPEC TO BE PUBLISHED NEXT IETF....
+*******************
+
+
 
 # QuicR Protocol
 
