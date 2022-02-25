@@ -8,6 +8,8 @@
 
 all: gen/draft-jennings-moq-architecture.txt
 
+html: gen/draft-jennings-moq-architecture.html
+
 clean:
 	rm -rf gen/*
 
