@@ -2,26 +2,33 @@
 
 # Introduction
 
-Interactive realtime applications ,such as interactive communication systems, have very strict requirements around ultra low latency. Such applications create their own application-specific delivery network over which such ultra low latency requirements can be met. Realtime transport protocols such as RTP provide the basic elements needed for realtime communication, both contribution and distribution, while leaving aspects such as resiliency and congestion control to be provided by each application.
+Interactive realtime applications ,such as web confercning systems, require low latency. Such applications create their own application-specific delivery network over which latency requirements can be met. Realtime transport protocols such as RTP provide the basic elements needed for realtime communication, both contribution and distribution, while leaving aspects such as resiliency and congestion control to be provided by each application.
 
-On the other hand, media streaming applications are much more tolerant to latency and require highly scalable media distribution. Such applications leverage existing CDN networks ,used for optimizing web delivery, to distribute media using standards such as HLS and MPEG-DASH.
+On the other hand, media streaming applications are much more tolerant to latency and require highly scalable media distribution. Such applications leverage existing CDN networks ,used for optimizing web delivery, to distribute media in commone video streaming applications.
 
-Recently new use cases have emerged requiring higher scalability of delivery for interactive realtime applications and much lower latency for streaming applications and a combination thereoff.
+Recently new use cases have emerged requiring higher scalability of delivery for interactive realtime applications and much lower latency for streaming applications and a combination thereoff. On one side are use cases such as normal web confernces wanting to distribute out to millions of viewers and allow any of thoses viewers to instanlty move to being a presenter. On the other side are uses such as steaming a soccer game to millions of people including people in the statium watching the game live. Viewers watching an e-sports event want to be able to comment with low latency between the live play and when they comment and with with low latecny between what diffirent viewers are seeing. All of these uses cases push towards leatecy that are in the order of 100ms over the naturual latency the network causes. 
 
 This document outlines a unified architetcure for data delivery that enables a wide range of realtime applications with different resiliency and latency needs. The architecture defines and uses QuicR, a delivery protocol that  is based on a publish/subscribe metaphor where client endpoints publish and subscribe to named objects that is sent to, and received from, relays that forms an overlay delivery network similar to what CDN provides today. QuicR is pronounced something close to “quicker” but with more of a pirate "arrrr" at the end.
 
-A typical usecase is an interactive communication application, e.g. video conferencing, where each endpoint in the conference subscribes to the media from the participants in the conference and at the same time publishes its own media. The cloud device that receives the subscriptions and distributes media is called a Relay and is similar to an application-independent SFU in the audio/video conferncing uses cases. 
+The subscribe messages allow subscription to a name that includes a wildcard to match many named publish so a single subcribe can allow a client to receives publishes for a wide class of named objects. 
+
+A typical usecase is an interactive communication application, e.g. video conferencing, where each endpoint in the conference subscribes to the media from the participants in the conference and at the same time publishes its own media. The cloud device that receives the subscriptions and distributes media is called a Relay and is similar to an application-independent SFU in the audio/video conferncing uses cases and simular to a CDN cache node in traditional streaming. 
+
+The Relays are arranged in a logical tree where for a given application, there is an orgin Relay at root of the tree that controlls the namespace. Publishe messages are sent towards the root of the tree and down the path of an subscribers to that named data. 
 
 The QuicR protocol takes care of transmitting named objects from the Publisher to the Relay and from the Relay to all the subscribers of the named dobject. It provides transport services selected and tuned based on application requirements (with the support of underlying transport, where necessary) such as detecting available bandwidth, fragmentation and reassembly, resiliency, congestion control and prioritization of data delivery based on data lifetime and importance of data. It is designed to be NAT and firewall traversal friendly and can be upfronted  with load balancers. Objects are named such that it is unique for the relay/delivery network and scoped to an application. Subscriptions can include a form of wildcarding to the named object.
 
-The design supports sending media and other named objects between a set of participants in a game or video call with under a hundred milliseconds of latency and meets the needs of web conferencing systems. The design can also be used for large scale streaming to millions of participants with latency ranging from a few seconds to under a few hundred milliseconds based on applications needs. It can also be used as low latency publish/subscribe system for real time systems such as messaging and IoT.
+The design supports sending media and other named objects between a set of participants in a game or video call with under a hundred milliseconds of latency and meets the needs of web conferencing systems. The design can also be used for large scale streaming to millions of participants with latency ranging from a few seconds to under a few hundred milliseconds based on applications needs. It can also be used as low latency publish/subscribe system for real time systems such as messaging, gaming, and IoT.
 
 In the simplest case, a web conferencing application could use a single relay to forward packets between users in a video conference. However a more typical scenario would have a delivery network made of multiple relays spread across several points of presence. QuicR is designed to make it easy to implement stateless relays so that fail over could happen between relays with
-minimal impact to the clients and relays can redirect a client to a different relay. 
+minimal impact to the clients and relays can redirect a client to a different relay.
 
 # Contributing
 
-All significant discussion of development of this protocol is in the GitHub issue tracker at TODO.
+All significant discussion of development of this protocol is in the GitHub issue tracker at:
+```
+https://github.com/fluffy/draft-jennings-moq-arch 
+```
 
 # Terminology
 
@@ -109,29 +116,23 @@ as integers`.   
 
 Names within QuicR should adhere to following constraints:
 
-* Names should enable compact representation for efficient transmission and storage.
+* Names should enable compact representation for efficient transmission and storage. To keep the size of each packet small for media like audio or game state, the names need to hash or map down to something in the range of 128 bits. 
 * Names should be efficiently converted to cache friendly datatypes ( like Keys in CDN caches) for storage and lookup purposes.
 * Names should enable data lookup at the relays based on partial as well as whole names.
 
+Once a named object is created, the content inside the named object can never be changed. 
+
 ## Name Discovery
 
-Names are discovered via manifests. The role of the manifest is to identify the names as well as aspects pertaining to the associated data in a given usage context of the application. The content of Manifest is application defined and end to end encrypted. The manifest is owned by the application's origin server and are accessed as a protected resources by the authorized QuicR clients. The QuicR protocol treats Manifests as first level named object, thus allowing for clients to subscribe for the purposes of bootstrapping into the session as well as to follow  manifest changes during a session [ new members joining a conference for example].
+Names can be discovered via manifests. The role of the manifest is to identify the names as well as aspects pertaining to the associated data in a given usage context of the application. The content of Manifest is application defined and end to end encrypted. The manifest is owned by the application's origin server and are accessed as a protected resources by the authorized QuicR clients. The QuicR protocol treats Manifests as a named object, thus allowing for clients to subscribe for the purposes of bootstrapping into the session as well as to follow  manifest changes during a session [ new members joining a conference for example].
 
-[todo should the maifest be end to end encrypted ?]
+The manifest has well known name on the Origin server.
 
-To this extent, the origin Servers MUST support following QuicR name for subscribing to the manifests.
-
-```
-quicr://domain/<application-static-component>/manifest
-```
-
-Also to note, a given application might provide non QuicR mechanisms to retrieve the manifest. Such mechanisms are out of scop and can be used complementary to the approaches defined in this specification.
+Also to note, a given application might provide non QuicR mechanisms to retrieve the manifest or not even even need a manifest. Such mechanisms are out of scop and can be used complementary to the approaches defined in this specification.
 
 ## QuicR media objects
 
-The objects that names point to are application specific. The granularity of such data ( say media frame, fragment, datum) and its frequency are fully specified by a given application and they need to be opaque for relays/in-transit caches. The data objects are end-to-end encrypted.
+The objects that names point to are application specific. The granularity of such data ( say media frame, fragment, datum) and its frequency are fully specified by a given application and they need to be opaque for relays/in-transit caches. The namedd objects are end-to-end encrypted.
 
-[To Do] Should we do some hand waving here about mapping media into objects and talk about synchronization point trade-offs etc.?
-
-
+[To Do] Should we do some hand waving here about mapping media into objects and talk about synchronization point trade-offs etc.? 
 
