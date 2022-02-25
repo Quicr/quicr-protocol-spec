@@ -82,13 +82,12 @@ The client can be behind NATs and firewalls and will often be on a WIFI for cell
 
 ## Components
 
-!---
-![QuicR](simple-arch.png "QuicR Architectural Components")
-!---
+TODO ADD FIGURE  - QuicR (simple-arch.png "QuicR Architectural Components")
+
 
 Above diagram shows the various components/roles making the QuicR architecture and how it can be leveraged by two different classes of applications; a streaming app and a communication app.
 
-[[todo explain the picture including the various components of publcishers, subscribers, origin server]]
+TODO: explain the picture including the various components of publcishers, subscribers, origin server
 
 # Names and Named Objects
 
@@ -105,14 +104,9 @@ Domain component uniquely identifies a given application domain. This is like a 
 
 Application component is scoped under a given Domain/Origin. This component is further split into 2 sub-components by a given application. First component represents a static aspect of the application's usage context (meetingId in a conferencing applications) and the final sub-component represent dynamic aspects (stream/encoding time). Such a division would allow for efficient wildcarding rules (see Wildcarding) when supported. The length and interpretation of each application sub-component is application specific. Also to note, such a sub-division is optional and care should be taken when supporting wildcarding rules, if omitted.
 
-Example: In this example, the domain component identifies acme.meeting.com domain, the application compoment identifies an instance of a meeting  under this domain, say "meeting123", and one of many meida streams, say camera stream, from the user "alice"
-    
-     ```quicr://acme.meeting.com/meeting123/alice/cam5/```
+Example: In this example, the domain component identifies acme.meeting.com domain, the application compoment identifies an instance of a meeting under this domain, say "meeting123", and one of many meida streams, say camera stream, from the user "alice"
 
-`A> Above representation of the name to be considered as application input and not
-the form that gets encodeded. A given application MAY choose a different way to 
-represent the name at the application layer. For QuicR messages names are represented
-as integers`.    
+```quicr://acme.meeting.com/meeting123/alice/cam5/```
 
 Names within QuicR should adhere to following constraints:
 

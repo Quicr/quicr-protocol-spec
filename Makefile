@@ -32,7 +32,7 @@ gen/draft-jennings-moq-architecture.pdf: gen/draft-jennings-moq-architecture.xml
 gen/draft-jennings-moq-architecture.html: gen/draft-jennings-moq-architecture.xml
 	xml2rfc --html --v3 gen/draft-jennings-moq-architecture.xml
 
-gen/draft-jennings-moq-architecture.pdf: abstract.md  moq-arch.md contributors.md 
+gen/doc-jennings-moq-architecture.pdf: abstract.md  moq-arch.md contributors.md 
 	mkdir -p gen 
-	pandoc -s title.md abstract.md  moq-arch.md contributors.md -o gen/draft-jennings-moq-architecture.pdf
+	pandoc -s title.md abstract.md  moq-arch.md contributors.md -o gen/doc-jennings-moq-architecture.pdf
 
