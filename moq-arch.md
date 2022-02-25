@@ -130,3 +130,24 @@ The objects that names point to are application specific. The granularity of suc
 
 [To Do] Should we do some hand waving here about mapping media into objects and talk about synchronization point trade-offs etc.? 
 
+# Protocol Design Considerations
+
+## HTTP
+
+It would be possible to start with something that looked like HTTP as the protcol between the relays with special conventions for wild cards in URLs of a GET and ways to stream non final responses for any responses perhaps using something like multipart MINE. However, most of the existing code and logic for HTTP would not really be usable with the low latency streaming of data. It is probably much simplier and more scableable to simply define a PUB/SUB protocol direclty on top of QUIC.
+
+##QUIC  Streams and Datagrams
+
+There and pro and cons to mapping object transport on top of streams or on top of QUIC datagrams. The working group would need to sort this out and consider the possibility of using both for differnt types of data and if there should be suppor for a semi-reliable transport of data. Some objects, for example the manifest, you nearly always want to recieve in a relaible way while other objects have to be realtime.
+
+## QUIC Congestion Controll
+
+The basic idea in BBR of speeding up to probe then slowing down to drain the queue build up caused duing probe can work fine with real time applicaions. However the the current implemetations in QUIC do not seem optimized for real time applicaions and have some time where the slow down causes too much jitter. To not have playout drop, the jitter buffers add latency to compensate for this. Probing for the RTT has been one of the phases that causes particular problems for this. To reduce the latency of QUIC, this work should coordinate with the QUIC working group have have the QUIC working group develop congention controll opimzations for low latncy use of QUIC.
+
+## Why not RTP
+
+TODO
+
+
+
+
