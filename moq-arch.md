@@ -89,6 +89,8 @@ Above diagram shows the various components/roles making the QuicR architecture a
 
 TODO: explain the picture including the various components of publcishers, subscribers, origin server
 
+TODO: explian that as the pub go up the tree, they get short circuit sent to any subibers on the the relay they traverse. Huge impact to latency for nearby the producer of the media. 
+
 # Names and Named Objects
 
 [Q: Is this the right level of derails for this draft?]
@@ -114,7 +116,11 @@ Names within QuicR should adhere to following constraints:
 * Names should be efficiently converted to cache friendly datatypes ( like Keys in CDN caches) for storage and lookup purposes.
 * Names should enable data lookup at the relays based on partial as well as whole names.
 
-Once a named object is created, the content inside the named object can never be changed. 
+Once a named object is created, the content inside the named object can never be changed.
+
+Objects have an expirty time after which they should be discarded by caches. 
+
+Objects have an priority that the relays and clients can use to sequence which object to send first.
 
 ## Name Discovery
 
@@ -130,9 +136,17 @@ The objects that names point to are application specific. The granularity of suc
 
 [To Do] Should we do some hand waving here about mapping media into objects and talk about synchronization point trade-offs etc.? 
 
+TODO - Congestion controll comes form QUIC but bitrate allocation is done at QuicR layer based on priority of objects.
+
+# Examples
+
+## Warp in QuicR
+
+The media for a given channel, fluffy, could be proivided at differnt encoding points - say low, medius, and high. Then the media could be broken into segments that include the refences frames and were a number of seconds of video. Each frame of video would be an named object in the segment and audio would be a differnt named object corespoding to frame. So an object name could be like quicr:twitch.com/channel-fluffy/codeing-medium/segment-10:22:33/video/frame-22 
+
 # Protocol Design Considerations
 
-## HTTP
+## HTTP/3
 
 It would be possible to start with something that looked like HTTP as the protcol between the relays with special conventions for wild cards in URLs of a GET and ways to stream non final responses for any responses perhaps using something like multipart MINE. However, most of the existing code and logic for HTTP would not really be usable with the low latency streaming of data. It is probably much simplier and more scableable to simply define a PUB/SUB protocol direclty on top of QUIC.
 
@@ -146,7 +160,9 @@ The basic idea in BBR of speeding up to probe then slowing down to drain the que
 
 ## Why not RTP
 
-TODO
+TODO - add Mo's points: The problem of stored formats vs RTP payload formats. The what does RTP get you. The problem that RTP is an gateway drug to SDP and friends done't let friends use SDP.
+
+
 
 
 
