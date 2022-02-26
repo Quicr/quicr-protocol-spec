@@ -79,8 +79,7 @@ The client can be behind NATs and firewalls and will often be on a WIFI for cell
 
 ## Components
 
-TODO ADD FIGURE  - QuicR (simple-arch.png "QuicR Architectural Components")
-
+### QuicR Delivery Network Architecture via Origin and No Relay functions
 !--
 ~~~ascii-art
                                            Publisher: quicr://twitch.com/channel-1/video/hi-res/...
@@ -90,7 +89,7 @@ TODO ADD FIGURE  - QuicR (simple-arch.png "QuicR Architectural Components")
                │             Subscribe                                *                      │
                │ quicr://<ingest-server>/streams/*        ┌───────────*─────────────────┐    │
                │       ┌───────────────────────┐          │                             │    │
-               │       │     ingest-server     │          │   distribution-serv         │    │
+               │       │     ingest-server     │          │   distribution-server       │    │
           ┌────┤       │      [Subscriber]     ├──────────▶      [Publisher]            │    │
           │    │       └───────────────────────┘          └──────┬──────────────────────┘    │
           │    └─────────────────────────────────────────────────┼───────────────┼───────────┘
@@ -112,6 +111,47 @@ TODO ADD FIGURE  - QuicR (simple-arch.png "QuicR Architectural Components")
 
 ~~~
 Figure: Pub/Sub via Origin (No relay)
+!--
+
+### QuicR Delivery Netowrk Architecture via Relay delivery network
+
+!--
+~~~ascii-art
+ 
+                                       ┌───────────────────────┐
+                                       │                       │
+                                       │    Origin [Relay]     │
+                                       │ [quicr://meeting.com/ │
+                                    ┌─▶│     meeting123..]     │◀──────────┐
+                                    │  │                       │           │
+                                    │  │                       │           │
+             pub-1: hi-res  video   │  └───────────────────┬───┘           │     sub:
+             pub-2: low-res video   │                                      │ alice/video/*
+                                    │            pub: alice, high-res      │
+                                    │            pub: alice, low-res       │
+                                    │                                      │
+                                    │                      │               │
+                      ┌─────────────┴──────────┐           │    ┌─────────────────┐             sub:
+                      │                        │           │    │                 │◀─────── alice/video/*
+             ┌───────▶│         Relay-B        │           └───▶│    Relay-B      │
+             │        │                        │                │                 ├────┐          │
+             │        └────────────────────────┘                └─┬─────────▲─────┘    │          │
+             │                     │         ▲                    │                    │          │
+ pub-1: hi-re│  video              │                                  sub:alice/v                 │
+ pub-2: low-r│s video                     sub: alice,   pub: alice,      deo/*     pub: alice,    │
+             │            pub: alice,    hi-res video    high-res,                  high-res,     │
+             │           hi-res video                     low-res                    low-res      │
+             │                               │                              │                     │
+             │                     │         │                    │         │          │          │
+             │                     ▼         │                    ▼         │          ▼          │
+      .─────────────.             .──────────┴──.             .─────────────.         .─────────────.
+   ,─'               '─.       ,─'               '─.       ,─'               '─.   ,─'               '─.
+  (        Alice        )     (         Bob         )     (        Carl         ) (        Derek        )
+   `──.             _.─'       `──.             _.─'       `──.             _.─'   `──.             _.─'
+       `───────────'               `───────────'               `───────────'           `───────────'
+
+~~~
+Figure: Pub/Sub with relay delivery network
 !--
 
 Above diagram shows the various components/roles making the QuicR architecture and how it can be leveraged by two different classes of applications; a streaming app and a communication app.
