@@ -1,6 +1,6 @@
-% QuicR - Media Delivery Protocol Over QUIC
+% QuicR - Media Delivery Protocol over QUIC
 % Cullen Jennings
-% December 2021
+% February 2021
 
 
 
