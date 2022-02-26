@@ -107,7 +107,6 @@ Objects represent the named entity within QuicR. An object's name is scoped to t
 
 ## Names
 
-
 Names in QuicR are composed of following components:
 
 1. Domain Component
@@ -116,21 +115,19 @@ Names in QuicR are composed of following components:
 
 !--
 ~~~ ascii-art
-       48 bits                      54 bits                     54 bits
-┌───────────────────┬───────────────────────────────── ┬──────────────────────┐
-│       Domain      │            Application           │    Object Group      │
-│     Component     │             Component            │     Component        │
-└───────────────────┴──────────────────────────────────┴─────────┬────────────┘
-                                                                 │
-                                                  ┌──────────────┴─────────────┐
-                                                  │                            │
-                                                  ▼                            ▼
-                                        ┌──────────────────┐        ┌──────────────────┐
-                                        │      Group       │        │       Object     │
-                                        │    Identifier    │        │    Identifier    │
-                                        └──────────────────┘        └──────────────────┘
-                                              16 bits                      10 bits
-
+   48 bits          54 bits            26 bits
+┌─────────────┬────────────────────┬───────────────┐
+│     Domain  │    Application     │ Object Group  │
+│   Component │     Component      │   Component   │
+└─────────────┴────────────────────┴──────┬────────┘
+                               ┌──────────┤
+                               │          └──────────┐
+                               ▼                     ▼
+                     ┌───────────────────┐ ┌───────────────────┐
+                     │       Group       │ │       Object      │
+                     │     Identifier    │ │     Identifier    │
+                     └───────────────────┘ └───────────────────┘
+                            16 bits               10 bits
 ~~~
 Figure: QuicR Name
 !--
@@ -141,7 +138,7 @@ Application component is scoped under a given Domain/Origin. This component iden
 
 The final subcomponent identifies the group and the composed objects. The objects within a group are identified by a monotonically increasing sequence numbers beginning with 0. Each group is similarly identified by monotonically increasing integers.
 
-Example: In this example, the domain component identifies acme.meeting.com domain, the application compoment identifies an instance of a meeting under this domain, say "meeting123", and camera stream from the user "alice". It also identifies the object 17 under part of the group 15. 
+Example: In this example, the domain component identifies acme.meeting.com domain, the application compoment identifies an instance of a meeting under this domain, say "meeting123", and camera stream from the user "alice". It also identifies the object 17 under part of the group 15.  
 
 ```quicr://acme.meeting.com/meeting123/alice/cam5/gro15/obj7```
 
@@ -151,19 +148,32 @@ Names within QuicR should adhere to following constraints:
 * Names should be efficiently converted to cache friendly datatypes ( like Keys in CDN caches) for storage and lookup purposes.
 * Names should enable data lookup at the relays based on partial as well as whole names.
 
-Once a named object is created, the content inside the named object can never be changed.
+Once a named object is created, the content inside the named object can never be changed. Objects have an expirty time after which they should be discarded by caches. Objects have an priority that the relays and clients can use to sequence which object to send first.
 
-Objects have an expirty time after which they should be discarded by caches. 
+## Wildcarding with Names
 
-Objects have an priority that the relays and clients can use to sequence which object to send first.
+QuicR allows subscribers to request for media based on wildcard'ed names. Wildcarding enables subscibes to be made as aggregates instead of object level granularity. Wildcarded names are formed by skipping the right most segments of the names from the application component onwards
+ 
+For example, in an web conferencing use case, the client may subscribe to just the origin and ResourceID to get all the media for a particular conference as indicated by the example below. The example matches all the named objects published by alice in the meeting123.
+
+```quicr://acme.meeting.com/meeting123/alice/* ```
+
 
 ## Name Discovery
 
-Names can be discovered via manifests. The role of the manifest is to identify the names as well as aspects pertaining to the associated data in a given usage context of the application. The content of Manifest is application defined and end to end encrypted. The manifest is owned by the application's origin server and are accessed as a protected resources by the authorized QuicR clients. The QuicR protocol treats Manifests as a named object, thus allowing for clients to subscribe for the purposes of bootstrapping into the session as well as to follow  manifest changes during a session [ new members joining a conference for example].
+Names can be optionally discovered via manifests. In such cases, the role of the manifest is to identify the names as well as aspects pertaining to the associated data in a given usage context of the application. 
 
-The manifest has well known name on the Origin server.
+* Typically a manifest identifies the domain and application aspects for set of names that can be published. 
 
-Also to note, a given application might provide non QuicR mechanisms to retrieve the manifest or not even even need a manifest. Such mechanisms are out of scop and can be used complementary to the approaches defined in this specification.
+* The content of Manifest is application defined and end to end encrypted. 
+
+* The manifest is owned by the application's origin server and are accessed as a protected resources by the authorized QuicR clients. 
+
+* The QuicR protocol treats Manifests as a named object, thus allowing for clients to subscribe for the purposes of bootstrapping into the session as well as to follow  manifest changes during a session [ new members joining a conference for example]. 
+
+* The manifest has well known name on the Origin server.
+
+Also to note, a given application might provide non QuicR mechanisms to retrieve the manifes. Such mechanisms are out of scop and can be used complementary to the approaches defined in this specification.
 
 ## QuicR media objects
 
@@ -174,6 +184,8 @@ The objects that names point to are application specific. The granularity of suc
 TODO - Congestion controll comes form QUIC but bitrate allocation is done at QuicR layer based on priority of objects.
 
 # Examples
+
+## Realtime Conferencing with QuicR
 
 ## Warp in QuicR
 
