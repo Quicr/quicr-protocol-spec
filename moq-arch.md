@@ -3,8 +3,8 @@
 # Introduction
 
 Interactive realtime applications, such as web conferencing systems,
-require ultra low latency. Such applications create their own
-application-specific delivery network over which latency requirements
+require ultra low latency (< 150ms). Such applications create their own
+application specific delivery network over which latency requirements
 can be met. Realtime transport protocols such as RTP provide the basic
 elements needed for realtime communication, both contribution and
 distribution, while leaving aspects such as resiliency and congestion
@@ -25,7 +25,7 @@ soccer game to millions of people including people in the stadium
 watching the game live. Viewers watching an e-sports event want to be
 able to comment with low latency between the live play to ensure the
 interactivity aspects
-[by having low latency between what different viewers are seeing]. All
+by having low latency between what different viewers are seeing. All
 of these uses cases push towards latencies that are in the order of
 100ms over the natural latency the network causes.
 
@@ -50,7 +50,7 @@ the subscriptions and distributes media is called a Relay and is similar
 to an application-independent SFU in the audio/video conferencing uses
 cases and similar to a CDN cache node in traditional streaming.
 
-The Relays are arranged in a logical tree where for a given application,
+The Relays are arranged in a logical tree where, for a given application,
 there is an origin Relay at root of the tree that controls the
 namespace. Publish messages are sent towards the root of the tree and
 down the path of any subscribers to that named data.
@@ -72,7 +72,7 @@ of participants in a game or video call with under a hundred
 milliseconds of latency and meets the needs of web conferencing
 systems. The design can also be used for large scale streaming to
 millions of participants with latency ranging from a few seconds to
-under a few hundred milliseconds based on applications needs. It can
+under a  hundred milliseconds based on applications needs. It can
 also be used as low latency publish/subscribe system for real time
 systems such as messaging, gaming, and IoT.
 
@@ -118,8 +118,7 @@ https://github.com/fluffy/draft-jennings-moq-arch ```
   application and is responsible for establishing trust between clients
   and relays. Origin servers can implement other QuicR functions.
 
-# QuicR characteristics and its Relationship to existing streaming
-  standards
+# QuicR relationship to existing streaming standards
 
 As its evident, QuicR and its architecture uses similar concepts and
 delivery mechanisms to those used by streaming standards such as HLS and
@@ -129,7 +128,7 @@ there are fundamental characteristics that QuicR provides to enable
 ultra low latency delivery for interactive applications such as
 conferencing and gaming.
 
-* To support low latency the granularity of the delivered objects ,in
+* To support low latency the granularity of the delivered objects, in
   terms of time duration, need to be quite small making it complicated
   for clients to request each object individually. QuicR uses a publish
   and subscription semantic along with a wildcard name to simplify and
@@ -181,23 +180,6 @@ conferencing and gaming.
   further processing as appropriate.
 
 # Architecture
-
-## Problem Space
-
-[To Do] Need work
-
-This architecture is designed for applications such as video
-communication systems, video streaming systems, games systems, multiuser
-AR/VR applications, and IoT sensor that produce real time data. It is
-designed for endpoints with between 0.1 and 10 mbps connection to the
-Internet that have a need for real time data transports. The main
-characteristic of real time data is that it is not useful if it is takes
-longer than some fixed amount of time to deliver.
-
-The client can be behind NATs and firewalls and will often be on a WIFI
-for cellular network. The Relays need to have a public IP address, or at
-least an IP address reachable by all the clients they serve, but can be
-behind firewalls and load balancers.
 
 ## Components
 
@@ -294,19 +276,13 @@ uniquely identify objects. Named objects can be cached in relays in a
 way CDNs cache resources and thus can obtain similar benefits such
 caching mechanisms would offer.
 
-## Group of Objects
+## Objects Groups
 
 Objects with in QuicR belong to a group. A group (a.k.a group of
 objects) represent an independent composition of set of objects, where
 there exists dependency relationship between the objects within the
 group. Groups, thus can be independently consumable by the subscriber
 applications.
-
-The group, its structure, the granularity and nature of relation that
-exists between the composed objects are application specific. Group
-themselves don't share any relationship with other groups in a given
-context. Also the QuicR protocol doesn't mandate the cardinality of
-these group of objects and leaves the same to the application.
 
 A typical example would be a group of pictures/video frames or group of
 audio samples that represent synchronization point in the video
@@ -315,22 +291,17 @@ conferencing example.
 
 ## Named Objects
 
-Objects represent the named entity within QuicR. An object's name is
-scoped to the group to which it belongs. The objects with in a group
-form a monodically increasing sequence space and the same is used in
-their naming.
 
-## Names
-
-Names in QuicR are composed of following components:
+The names of each in QuicR are composed of following components:
 
 1. Domain Component
 2. Application Component
-3. Object Group Component
+3. Group ID Component
+4. Object ID Component 
 
 !--
-~~~ ascii-art
-   48 bits          54 bits            26 bits
+~~~ascii-art
+   48 bits          48 bits            32 bits
 ┌─────────────┬────────────────────┬───────────────┐
 │     Domain  │    Application     │ Object Group  │
 │   Component │     Component      │   Component   │
@@ -342,7 +313,7 @@ Names in QuicR are composed of following components:
                      │       Group       │ │       Object      │
                      │     Identifier    │ │     Identifier    │
                      └───────────────────┘ └───────────────────┘
-                            16 bits               10 bits
+                            16 bits               16 bits
 ~~~
 Figure: QuicR Name
 !--
@@ -352,15 +323,17 @@ like a HTTP Origin and uniquely identifies the application and a root
 relay function. This is a DNS domain name or IP address combined with a
 UDP port number mapped to into the domain. Example: sfu.webex.com:5004.
 
-Application component is scoped under a given Domain/Origin. This
+Application components are scoped under a given Domain. This
 component identifies aspects specific to a given application instance
-hosted under a given domain (e.g.meeting identifier, media type or media
+hosted under a given domain (e.g.meeting identifier, which movie or
+channel, media type or media
 quality identifier).
 
-The final subcomponent identifies the group and the composed
-objects. The objects within a group are identified by a monotonically
-increasing sequence numbers beginning with 0. Each group is similarly
-identified by monotonically increasing integers.
+Inside each Application Component, there is a set of groups. Each
+group is identified by a monotonically increasing integer. Inside of
+each Group, each object is identified by another monotonically increasing
+integer inside that group. The groupID and objectID start at 0 and are
+limited to 16 bits long.
 
 Example: In this example, the domain component identifies
 acme.meeting.com domain, the application component identifies an
@@ -368,30 +341,16 @@ instance of a meeting under this domain, say "meeting123", and high
 resolution camera stream from the user "alice". It also identifies the
 object 17 under part of the group 15.
 
-```quicr://acme.meeting.com/meeting123/alice/cam5/HiRes/gro15/obj7```
-
-Names within QuicR should adhere to following constraints:
-
-* Names should enable compact representation for efficient transmission
-  and storage. To keep the size of each packet small for media like
-  audio or game state, the names need to hash or map down to something
-  in the range of 128 bits.
-* Names should be efficiently converted to cache friendly datatypes (
-  like Keys in CDN caches) for storage and lookup purposes.
-* Names should enable data lookup at the relays based on partial as well
-  as whole names.
-
-Once a named object is created, the content inside the named object can
-never be changed. Objects have an expiry time after which they should be
-discarded by caches. Objects have an priority that the relays and
-clients can use to sequence which object to send first.
+```
+quicr://acme.meeting.com/meeting123/alice/cam5/HiRes/15/17
+```
 
 ## Wildcarding with Names
 
 QuicR allows subscribers to request for media based on wildcard'ed
 names. Wildcarding enables subscribes to be made as aggregates instead
 of object level granularity. Wildcard names are formed by skipping the
-right most segments of the names from the application component onwards
+right most segments of names.
  
 For example, in an web conferencing use case, the client may subscribe
 to just the origin and ResourceID to get all the media for a particular
@@ -400,8 +359,90 @@ the named objects published by alice in the meeting123.
 
 ```quicr://acme.meeting.com/meeting123/alice/* ```
 
+When subscribing, there is an option to tell the relay to one of:
 
-## Name Discovery
+A.  Deliver any new objects it receives that match the name 
+
+B. Deliver any new objects it receives and in addition send any previos
+objects it has received that are in the same group as the most recently
+received group that matches the name.
+
+C. Wait until an object that has a objectiD that matches the name is
+received then start sending any objects that match the name.
+
+D. Send the most recent object that matches the name then send any new
+objects that match the name. 
+
+## Name Hashes 
+
+All Names need to hash or map down to 128 bits. This allows for:
+
+* compact representation for efficient transmission and storage,
+
+* cache friendly datatypes ( like Keys in CDN caches) for storage and
+lookup purposes and,
+
+* enable rapid data lookup at the relays based on partial as well as
+whole names ( wildcard support ).
+
+TODO - Suhas - perhaps move the figure here ???
+
+This is done hashing the origin to first 48 bits. Any relay that forms an
+connection to an new origin needs to ensure this does not collide with
+an existing origin. The application component is mapped to the next 48
+bits and it is the responsibility of the application to ensure there are
+not collisions within a given origin. Finally the group ID and object ID
+each map to 16 bits.
+
+Design Note: It os possible to let each application define the
+size theses boundaries as well as sub boundaries inside the application
+component but for sake of simplicity it is described as fixed boundaries
+for now.
+
+Wildcard search simply turn into a bitmask at the approbate bit location
+of the hashed name. 
+
+The hash names are key part of the design for allowing small objects
+without adding lots of overhead and for effecent implementation of
+Relays. 
+
+# Objects
+
+Once a named object is created, the content inside the named object can
+never be changed. Objects have an expiry time after which they should be
+discarded by caches. Objects have an priority that the relays and
+clients can use to sequence which object to send first. The data inside
+an object is end to end encrypted with keys which are not available to
+Relay.
+
+# Relays
+
+The relays receive subscriptions and intent to publish request and
+forward them towards the origin Relay. This may send the messages
+directly to the Origin Relay or possibly traverse another Relay. Replies
+to theses message follow the reverse direction of the request and when
+the Origin gives the OK to a subscription or request to publish, the
+Relay allows the subscription or future publishes to the Name in the
+request.
+
+Subscription received are aggregated. When a relay receives a publish
+request with data, it will forward it both towards the Origin and to any
+clients or relays that have a matchin subscription. This "short
+circuit" of distribution by a relay before the data has even reached the
+Origin servers provides significan latency reduction for nearby client.
+
+The Relay keeps an outgoing queue of objects to be sent to the each
+subscriber and objects are sent in priority order.
+
+Relays MAY cache some of the information for short period of time and
+the time cached may depend on the origin.
+
+# QuicR Usage Design Patterns
+
+This section explains design patters that can be use to build
+applications on top of QuicR.
+
+##  QuicR Manifest Objects
 
 Names can be optionally discovered via manifests. In such cases, the
 role of the manifest is to identify the names as well as aspects
@@ -424,44 +465,105 @@ application.
 
 * The manifest has well known name on the Origin server.
 
+* The manifest would typically be a a group and new version of it could
+  be published with an incremented ObjectID.  Subscriptions of the group
+  would get the latest copy of the manifest. 
+
 Also to note, a given application might provide non QuicR mechanisms to
-retrieve the manifest. Such mechanisms are out of scoped and can be used
-complementary to the approaches defined in this specification.
+retrieve the manifest. 
 
-## QuicR media objects
+## QuicR Video Objects
 
-The names are application specific. The
-granularity of such data ( say media frame, fragment, datum) and its
-frequency are fully specified by a given application and they need to be
-opaque for relays/in-transit caches. The named objects are end-to-end
-encrypted.
+Most video applications would use the application component et to identity
+which videos stream it was as well as the encoding point such as
+resolution and bit rate. Each independent decode set of frames would go
+in a single group, and each frame inside that group would go in a
+separate named object inside the group. The allows an application to
+review a given encoding of the video by subscribing to the applications
+component with a wildcard for group and object IDs. 
 
-[To Do] Should we do some hand waving here about mapping media into
-objects and talk about synchronization point trade-offs etc.?
+This allows a subscription to get all the frame in the current group if
+it joins lates, or wait till the group before starting to get data based
+on the subscription options. Changing to a different bitrate or
+resolution would use a a new subscripting to the appropriate
 
-TODO - Congestion control comes form QUIC but bitrate allocation is
-done at QuicR layer based on priority of objects.
+The QUIC transport that QuicR is running on provides the congestion
+controll but the application and see what objects are received and
+determin if it should change it's subscription to a different bitrate
+application component. 
 
-# Examples
+Todays video is often encoded with I frames at a fixed internal but this
+can result in pulsing video quality. Future system may want to insert I
+frames at each change of scene resulting in groups with a variable
+number of frames. QuicR easily supports that. 
 
-## Realtime Conferencing with QuicR
+## QuicR Audio Objects
 
-## Warp in QuicR
+Each small chuck of audio, such as 10 ms, can be put its own Object.
 
-The media for a given channel, fluffy, could be provided at different
-encoding points - say low, medius, and high. Then the media could be
-broken into segments that include the references frames and were a
-number of seconds of video. Each frame of video would be an named object
-in the segment and audio would be a different named object corresponding
-to frame. So an object name could be like
+Future sub 2 kbps audio codecs may take advantage of a rapidly
+updated model that are needed to decode the audio which could result in
+audio needing to use groups like video does to ensure all the objects
+needed to decode some audio are in the same group. 
 
-```
-quicr:twitch.com/channel-fluffy/codeing-medium/segment-10:22:33/video/frame-22
-```
+## QuicR Game Moves Objects
+
+Some game send out a base set of state information then incremental
+deltas to this. Each time a new base set is sent, a new group can be
+formed and each increment change as an Object in the group. When new
+players join, they can subscribe to get the current group and all the
+incremental changes to it.
+
+## Messaging Objects
+
+Chat applications and messaging system can form a manifest representing
+the roser of the people in a given channel or talk room. The manifest
+can provide the an applications component for each user than
+contributes messages. A subscription to each applications component can
+receive each new message. Each message would be a single
+object. Typically QuicR would be use to get the recent messages and then
+a more traditional HTTP CDN approach could be used to retrieve copies of
+all the older objects.
+
+
+
+# Security Considerations
+
+The links between Relay and other Relays or Clients can be encrypted,
+this does not protect the content form Relays. To mitigate this all the
+objects need to be end to end encrypted with a keying mechanism outside
+the scope of this protocol. For may applications, simp;y getting the
+keys over HTTPS for a particular object from the origin server will be
+adequate. For other applicants keying based on MLS may be more
+appropriate. Many applications can leverage the existing key managed scheme
+used in HLS and DASH for DRM protected content.
+
+Relays reachable on the internet are assumed to bave a bustiness
+relationship with teh Origin and the protocol provides a way to verify
+that any data moved is on behalf of a give Origin. 
+
+Relays in a local network may choose to process content for any Origin
+but since only local users can access them, their is a way to mange
+which applications use them.
+
+Subscriptions need to be refreshed at least ever 5 seconds to ensure
+liveness and consent for the client to continue receiving data.
+
 
 # Protocol Design Considerations
 
 ## HTTP/3
+
+It is tempting to base this on HTTP but there are a few high level
+architectural mismatches. HTTP is largely designed for a stateless
+server in a client server architecture. The whole concept of the PUB/SUB
+is that the relays are *not* stateless and keep the subscription
+information and this is what allows for low latency and high throughput
+on the relays. In todays CDS, the CDN nodes end up faking the
+credentials of the origin server and this limites how and where they can
+be a deployed. A design with explicitly designed relays that do not need
+to do this, while still assuming an end to end encrypted model so the
+relayes did not have access to the content makes for a better design. 
 
 It would be possible to start with something that looked like HTTP as
 the protocol between the relays with special conventions for wild cards
@@ -480,7 +582,7 @@ and if there should be support for a semi-reliable transport of
 data. Some objects, for example the manifest, you nearly always want to
 receive in a reliable way while other objects have to be realtime.
 
-## QUIC Congestion Controll
+## QUIC Congestion Control
 
 The basic idea in BBR of speeding up to probe then slowing down to drain
 the queue build up caused during probe can work fine with real time
@@ -497,5 +599,5 @@ optimizations for low latency use of QUIC.
 
 TODO - add Mo's points: The problem of stored formats vs RTP payload
 formats. The what does RTP get you. The problem that RTP is an gateway
-drug to SDP and friends done't let friends use SDP.
+drug to SDP and friends done't let friends try to debug SDP.
 
