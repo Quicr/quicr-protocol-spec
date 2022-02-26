@@ -31,7 +31,6 @@ organization = "cisco"
 
 {backmatter}
 
-
 # Acknowledgments
 
 {{contributors.md}}

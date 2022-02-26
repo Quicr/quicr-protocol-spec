@@ -1,2 +1,3 @@
-Thanks to <TODO> for contributions and suggestions to this specification.
+Thanks to <TODO> for contributions and suggestions to this
+specification.
 
