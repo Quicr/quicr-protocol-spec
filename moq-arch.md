@@ -329,7 +329,7 @@ Names in QuicR are composed of following components:
 3. Object Group Component
 
 !--
-~~~ ascii-art
+~~~ascii-art
    48 bits          54 bits            26 bits
 ┌─────────────┬────────────────────┬───────────────┐
 │     Domain  │    Application     │ Object Group  │
@@ -368,7 +368,9 @@ instance of a meeting under this domain, say "meeting123", and high
 resolution camera stream from the user "alice". It also identifies the
 object 17 under part of the group 15.
 
-```quicr://acme.meeting.com/meeting123/alice/cam5/HiRes/gro15/obj7```
+```
+quicr://acme.meeting.com/meeting123/alice/cam5/HiRes/gro15/obj7
+```
 
 Names within QuicR should adhere to following constraints:
 
