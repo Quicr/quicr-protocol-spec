@@ -217,6 +217,25 @@ conferencing and gaming.
 Figure: Pub/Sub via Origin (No relay)
 !--
 
+
+!--
+~~~ascii-art
+                       +-------------+                         
+                       |Relay        |                         
+    +----------------> |Orgin:tw.com |-----+                   
+    |                  +-------------+     |                   
+    |                                ^     |                   
+    |pub:tw.com/ch22/3/1             |     |                   
+    |                                |     |                   
+    |               sub:tw.com/ch22/*|     |                   
+    |                                |     |pub:tw.com/ch22/3/1
+    |                                |     v                   
++-----------+                      +----------+                
+| Publisher |                      |Subscriber|                
++-----------+                      +----------+                 
+~~~
+!--
+
 ### QuicR Delivery Network Architecture via Relay delivery network
 
 !--
@@ -257,6 +276,55 @@ Figure: Pub/Sub via Origin (No relay)
 ~~~
 Figure: Pub/Sub with relay delivery network
 !--
+
+!--
+~~~ascii-art 
+             +------+           
+        +--->|RelayO----+       
+        |    +------+   |       
+       2|              4|       
+        |               v       
+     +------+       +------+    
+  +->|RelayA|       |RelayB|    
+  |  +------+       +------+    
+  |       |         |      |    
+ 1|      3|        5|     6|    
+  |       V         V      V    
++-----+  +---+   +----+  +-----+
+|Alice|  |Bob|   |Carl|  |Derek|
++-----+  +---+   +----+  +-----+
+~~~
+!--
+
+
+!--
+~~~ascii-art 
+                  +--------+                                     
+           +----> |Realay-O| <----------------+                  
+           |      +--------+                  |                  
+           |       ^       |                  |sub:alice-low     
+ pub:alice-hi      |       pub:alice-hi       |sub:alice-hi      
+ pub:alice-low     |       pub:alice-low      |                  
+           | sub:alice-low |                  |                  
+           |       |       |                  |                  
+          +---------+      |  +------------------------+         
+  +------>| Relay-A |      +->|    Relay-B             |         
+  |       +---------+         +------------------------+         
+  |           |  ^              |    ^          |    ^           
+ pub1:alice-hi|  |              |    |          |    |           
+ pub2:alice-low  |              |    |          |    |           
+  |           |  |              |    |          |    |           
+  |          pub:alice-low     pub:alice-hi    pub:alice-low     
+  |           |  |              |    |          |    |           
+  |           | sub:alice-low   |   sub:alice-hi|   sub:alice-low
+  |           v  |              v    |          v    |           
+  +------+    +---+              +----+         +-----+          
+  | Alice|    |Bob|              |  Carl        |Derek|          
+  +------+    +---+              +----+         +-----+
+~~~
+!--
+
+
 
 Above diagram shows the various components/roles making the QuicR
 architecture and how it can be leveraged by two different classes of
@@ -317,6 +385,8 @@ The names of each in QuicR are composed of following components:
 ~~~
 Figure: QuicR Name
 !--
+
+
 
 Domain component uniquely identifies a given application domain. This is
 like a HTTP Origin and uniquely identifies the application and a root
