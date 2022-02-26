@@ -48,12 +48,12 @@ subscribes to the media from the participants in the conference and at
 the same time publishes its own media. The cloud device that receives
 the subscriptions and distributes media is called a Relay and is similar
 to an application-independent SFU in the audio/video conferencing uses
-cases and simular to a CDN cache node in traditional streaming.
+cases and similar to a CDN cache node in traditional streaming.
 
 The Relays are arranged in a logical tree where for a given application,
 there is an origin Relay at root of the tree that controls the
 namespace. Publish messages are sent towards the root of the tree and
-down the path of an subscribers to that named data.
+down the path of any subscribers to that named data.
 
 The QuicR protocol takes care of transmitting named objects from the
 Publisher to the Relay and from the Relay to all the subscribers of the
@@ -170,7 +170,7 @@ conferencing and gaming.
 
 * QuicR allows publishers to associate a priority with
   objects. Priorities can help the delivery network and the subscribers
-  to make decisions about resiliency, latency,drops etc. Priorities can
+  to make decisions about resiliency, latency, drops etc. Priorities can
   used to set relative importance between different qualities for
   layered video encoding, for example.
 
@@ -409,7 +409,7 @@ pertaining to the associated data in a given usage context of the
 application.
 
 * Typically a manifest identifies the domain and application aspects for
-  set of names that can be published.
+  the set of names that can be published.
 
 * The content of Manifest is application defined and end to end
   encrypted.
@@ -425,12 +425,12 @@ application.
 * The manifest has well known name on the Origin server.
 
 Also to note, a given application might provide non QuicR mechanisms to
-retrieve the manifes. Such mechanisms are out of scop and can be used
+retrieve the manifest. Such mechanisms are out of scoped and can be used
 complementary to the approaches defined in this specification.
 
 ## QuicR media objects
 
-The objects that names point to are application specific. The
+The names are application specific. The
 granularity of such data ( say media frame, fragment, datum) and its
 frequency are fully specified by a given application and they need to be
 opaque for relays/in-transit caches. The named objects are end-to-end
@@ -439,7 +439,7 @@ encrypted.
 [To Do] Should we do some hand waving here about mapping media into
 objects and talk about synchronization point trade-offs etc.?
 
-TODO - Congestion controll comes form QUIC but bitrate allocation is
+TODO - Congestion control comes form QUIC but bitrate allocation is
 done at QuicR layer based on priority of objects.
 
 # Examples
@@ -476,7 +476,7 @@ scaleable to simply define a PUB/SUB protocol directly on top of QUIC.
 There and pro and cons to mapping object transport on top of streams or
 on top of QUIC datagrams. The working group would need to sort this out
 and consider the possibility of using both for different types of data
-and if there should be suppor for a semi-reliable transport of
+and if there should be support for a semi-reliable transport of
 data. Some objects, for example the manifest, you nearly always want to
 receive in a reliable way while other objects have to be realtime.
 
@@ -490,7 +490,7 @@ slow down causes too much jitter. To not have payout drop, the jitter
 buffers add latency to compensate for this. Probing for the RTT has been
 one of the phases that causes particular problems for this. To reduce
 the latency of QUIC, this work should coordinate with the QUIC working
-group have have the QUIC working group develop congestion controll
+group have have the QUIC working group develop congestion control
 optimizations for low latency use of QUIC.
 
 ## Why not RTP
