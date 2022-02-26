@@ -2,26 +2,25 @@
 
 # Introduction
 
-Interactive realtime applications ,such as web confercning systems, require low latency. Such applications create their own application-specific delivery network over which latency requirements can be met. Realtime transport protocols such as RTP provide the basic elements needed for realtime communication, both contribution and distribution, while leaving aspects such as resiliency and congestion control to be provided by each application.
+Interactive realtime applications, such as web conferencing systems, require ultra low latency. Such applications create their own application-specific delivery network over which latency requirements can be met. Realtime transport protocols such as RTP provide the basic elements needed for realtime communication, both contribution and distribution, while leaving aspects such as resiliency and congestion control to be provided by each application.
 
-On the other hand, media streaming applications are much more tolerant to latency and require highly scalable media distribution. Such applications leverage existing CDN networks ,used for optimizing web delivery, to distribute media in commone video streaming applications.
+On the other hand, media streaming applications are much more tolerant to latency and require highly scalable media distribution. Such applications leverage existing CDN networks, used for optimizing web delivery, to distribute media in commone video streaming applications.
 
-Recently new use cases have emerged requiring higher scalability of delivery for interactive realtime applications and much lower latency for streaming applications and a combination thereoff. On one side are use cases such as normal web confernces wanting to distribute out to millions of viewers and allow any of thoses viewers to instanlty move to being a presenter. On the other side are uses such as steaming a soccer game to millions of people including people in the statium watching the game live. Viewers watching an e-sports event want to be able to comment with low latency between the live play and when they comment and with with low latecny between what diffirent viewers are seeing. All of these uses cases push towards leatecy that are in the order of 100ms over the naturual latency the network causes. 
+Recently new usecases have emerged requiring higher scalability of delivery for interactive realtime applications and much lower latency for streaming applications and a combination thereoff. On one side are usecases such as normal web confernces wanting to distribute out to millions of viewers and allow any of thoses viewers to instanlty move to being a presenter. On the other side are usescase such as steaming a soccer game to millions of people including people in the stadium watching the game live. Viewers watching an e-sports event want to be able to comment with low latency between the live play to ensure the interactivity aspects [by having low latecny between what diffirent viewers are seeing]. All of these uses cases push towards latencies that are in the order of 100ms over the naturual latency the network causes. 
 
-This document outlines a unified architetcure for data delivery that enables a wide range of realtime applications with different resiliency and latency needs. The architecture defines and uses QuicR, a delivery protocol that  is based on a publish/subscribe metaphor where client endpoints publish and subscribe to named objects that is sent to, and received from, relays that forms an overlay delivery network similar to what CDN provides today. QuicR is pronounced something close to “quicker” but with more of a pirate "arrrr" at the end.
+This document outlines a unified architetcure for data delivery that enables a wide range of realtime applications with different resiliency and latency needs. The architecture defines and uses QuicR, a delivery protocol that is based on a publish/subscribe metaphor where client endpoints publish and subscribe to named objects that is sent to, and received from, relays that forms an overlay delivery network similar to what CDN provides today. QuicR is pronounced something close to “quicker” but with more of a pirate "arrrr" at the end.
 
-The subscribe messages allow subscription to a name that includes a wildcard to match many named publish so a single subcribe can allow a client to receives publishes for a wide class of named objects. 
+The subscribe messages allow subscription to a name that includes a wildcard to match multiple published names, so a single subcribe can allow a client to receive publishes for a wide class of named objects. 
 
 A typical usecase is an interactive communication application, e.g. video conferencing, where each endpoint in the conference subscribes to the media from the participants in the conference and at the same time publishes its own media. The cloud device that receives the subscriptions and distributes media is called a Relay and is similar to an application-independent SFU in the audio/video conferncing uses cases and simular to a CDN cache node in traditional streaming. 
 
-The Relays are arranged in a logical tree where for a given application, there is an orgin Relay at root of the tree that controlls the namespace. Publishe messages are sent towards the root of the tree and down the path of an subscribers to that named data. 
+The Relays are arranged in a logical tree where for a given application, there is an origin Relay at root of the tree that controls the namespace. Publishe messages are sent towards the root of the tree and down the path of an subscribers to that named data. 
 
 The QuicR protocol takes care of transmitting named objects from the Publisher to the Relay and from the Relay to all the subscribers of the named dobject. It provides transport services selected and tuned based on application requirements (with the support of underlying transport, where necessary) such as detecting available bandwidth, fragmentation and reassembly, resiliency, congestion control and prioritization of data delivery based on data lifetime and importance of data. It is designed to be NAT and firewall traversal friendly and can be upfronted  with load balancers. Objects are named such that it is unique for the relay/delivery network and scoped to an application. Subscriptions can include a form of wildcarding to the named object.
 
 The design supports sending media and other named objects between a set of participants in a game or video call with under a hundred milliseconds of latency and meets the needs of web conferencing systems. The design can also be used for large scale streaming to millions of participants with latency ranging from a few seconds to under a few hundred milliseconds based on applications needs. It can also be used as low latency publish/subscribe system for real time systems such as messaging, gaming, and IoT.
 
-In the simplest case, a web conferencing application could use a single relay to forward packets between users in a video conference. However a more typical scenario would have a delivery network made of multiple relays spread across several points of presence. QuicR is designed to make it easy to implement stateless relays so that fail over could happen between relays with
-minimal impact to the clients and relays can redirect a client to a different relay.
+In the simplest case, a web conferencing application could use a single relay to forward packets between users in a video conference. However a more typical scenario would have a delivery network made of multiple relays spread across several points of presence. QuicR is designed to make it easy to implement relays so that fail over could happen between relays with minimal impact to the clients and relays can redirect a client to a different relay.
 
 # Contributing
 
@@ -47,8 +46,6 @@ https://github.com/fluffy/draft-jennings-moq-arch
 * Origin server: Component managing the QuicR namespace for a specific application and is responsible for establishing trust between clients and relays. Origin servers can implement other QuicR functions.
 
 # QuicR characteristics and its Relationship to existing streaming standards
-
-[To DO] Shold we say something about RTP!
 
 As its evident, QuicR and its architetcure uses similar concepts and delivery mechanisms to those used by streaming standards such as HLS and MPEG-DASH. Specifically the use of a CDN-like delivery network, the use of named objects and the receiver-triggered media/data delivery. However there are fundamental characteristics that QuicR provides to enable ultra low latency delivery for interactive applications such as conferncing and gaming. 
 
@@ -93,22 +90,60 @@ TODO: explian that as the pub go up the tree, they get short circuit sent to any
 
 # Names and Named Objects
 
-[Q: Is this the right level of derails for this draft?]
+Names are basic elements with in the QuicR architecture and they uniquely identify objects. Named objects can be cached in relays in a way CDNs cache resources and thus can obtain similar benefits such caching mechanisms would offer.
 
-Names are basic elements with in the QuicR architecture and they uniquely identify objects. Named objects can be cached in relays in a way CDNs cache resources and thus can obtain similar benifits such caching mechanisms would offer.
+## Group of Objects
 
-Names are composed of following components:
+Objects with in QuicR belong to a group. A group (a.k.a group of objects) represent an independent composition of set of objects, where there exists dependency relationship between the objects within the group. Groups, thus can be independently consummable by the subscriber applications.
+
+The group, its structure, the granularity and nature of relation that exists betweem the composed objects are application specific. Group themselves don't share any relationship with other groups in a given context. Also the QuicR protocol doesn't mandate the cardinality of these group of objects and leaves the same to the application.
+
+A typical example would be a group of pictures/video frames or group of audio samples that represent synchronization point in the video conferencing example.
+
+
+## Named Objects
+
+Objects represent the named entity within QuicR. An object's name is scoped to the group to which it belongs. The objects with in a group form a monotically increasing sequence space and the same is used in their naming.
+
+## Names
+
+
+Names in QuicR are composed of following components:
 
 1. Domain Component
 2. Application Component
+3. Object Group Component
 
-Domain component uniquely identifies a given application domain. This is like a HTTP Origin and uniquely identifies the application and a root relay. This is a DNS domain name or IP address combined with a UDP port number mapped to into the domain. Example: sfu.webex.com:5004.
+!--
+~~~ ascii-art
+       48 bits                      54 bits                     54 bits
+┌───────────────────┬───────────────────────────────── ┬──────────────────────┐
+│       Domain      │            Application           │    Object Group      │
+│     Component     │             Component            │     Component        │
+└───────────────────┴──────────────────────────────────┴─────────┬────────────┘
+                                                                 │
+                                                  ┌──────────────┴─────────────┐
+                                                  │                            │
+                                                  ▼                            ▼
+                                        ┌──────────────────┐        ┌──────────────────┐
+                                        │      Group       │        │       Object     │
+                                        │    Identifier    │        │    Identifier    │
+                                        └──────────────────┘        └──────────────────┘
+                                              16 bits                      10 bits
 
-Application component is scoped under a given Domain/Origin. This component is further split into 2 sub-components by a given application. First component represents a static aspect of the application's usage context (meetingId in a conferencing applications) and the final sub-component represent dynamic aspects (stream/encoding time). Such a division would allow for efficient wildcarding rules (see Wildcarding) when supported. The length and interpretation of each application sub-component is application specific. Also to note, such a sub-division is optional and care should be taken when supporting wildcarding rules, if omitted.
+~~~
+Figure: QuicR Name
+!--
 
-Example: In this example, the domain component identifies acme.meeting.com domain, the application compoment identifies an instance of a meeting under this domain, say "meeting123", and one of many meida streams, say camera stream, from the user "alice"
+Domain component uniquely identifies a given application domain. This is like a HTTP Origin and uniquely identifies the application and a root relay function. This is a DNS domain name or IP address combined with a UDP port number mapped to into the domain. Example: sfu.webex.com:5004.
 
-```quicr://acme.meeting.com/meeting123/alice/cam5/```
+Application component is scoped under a given Domain/Origin. This component identifies aspects specific to a given application instance hosted under a given domain (e.g.meeting identifier, media type or media quality identifier).
+
+The final subcomponent identifies the group and the composed objects. The objects within a group are identified by a monotonically increasing sequence numbers beginning with 0. Each group is similarly identified by monotonically increasing integers.
+
+Example: In this example, the domain component identifies acme.meeting.com domain, the application compoment identifies an instance of a meeting under this domain, say "meeting123", and camera stream from the user "alice". It also identifies the object 17 under part of the group 15. 
+
+```quicr://acme.meeting.com/meeting123/alice/cam5/gro15/obj7```
 
 Names within QuicR should adhere to following constraints:
 
