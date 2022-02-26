@@ -1,5 +1,5 @@
 %%%
-title = "QuicR - Media Devlivery Protocol over QUIC"
+title = "QuicR - Media Delivery Protocol over QUIC"
 abbrev = "quicr"
 ipr= "trust200902"
 area = "transport"
