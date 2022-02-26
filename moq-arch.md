@@ -387,7 +387,7 @@ whole names ( wildcard support ).
 
 TODO - Suhas - perhaps move the figure here ???
 
-This is done hashing the origin to frist 48 bits. Any relay that forms an
+This is done hashing the origin to first 48 bits. Any relay that forms an
 connection to an new origin needs to ensure this does not collide with
 an existing origin. The application component is mapped to the next 48
 bits and it is the responsibility of the application to ensure there are
@@ -502,8 +502,8 @@ number of frames. QuicR easily supports that.
 Each small chuck of audio, such as 10 ms, can be put its own Object.
 
 Future sub 2 kbps audio codecs may take advantage of a rapidly
-updated model that are needed to decode the audo which could result in
-audo needing to use groups like video does to ensure all the objects
+updated model that are needed to decode the audio which could result in
+audio needing to use groups like video does to ensure all the objects
 needed to decode some audio are in the same group. 
 
 ## QuicR Game Moves Objects
