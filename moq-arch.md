@@ -292,7 +292,7 @@ conferencing example.
 ## Named Objects
 
 
-The names of each in QuicR are composed of following components:
+The names of each object in QuicR is composed of the following components:
 
 1. Domain Component
 2. Application Component
@@ -323,11 +323,10 @@ like a HTTP Origin and uniquely identifies the application and a root
 relay function. This is a DNS domain name or IP address combined with a
 UDP port number mapped to into the domain. Example: sfu.webex.com:5004.
 
-Application components are scoped under a given Domain. This
+Application component is scoped under a given Domain. This
 component identifies aspects specific to a given application instance
 hosted under a given domain (e.g.meeting identifier, which movie or
-channel, media type or media
-quality identifier).
+channel, media type or media quality identifier).
 
 Inside each Application Component, there is a set of groups. Each
 group is identified by a monotonically increasing integer. Inside of
@@ -335,7 +334,7 @@ each Group, each object is identified by another monotonically increasing
 integer inside that group. The groupID and objectID start at 0 and are
 limited to 16 bits long.
 
-Example: In this example, the domain component identifies
+Example: In the example below, the domain component identifies
 acme.meeting.com domain, the application component identifies an
 instance of a meeting under this domain, say "meeting123", and high
 resolution camera stream from the user "alice". It also identifies the
@@ -363,15 +362,12 @@ When subscribing, there is an option to tell the relay to one of:
 
 A.  Deliver any new objects it receives that match the name 
 
-B. Deliver any new objects it receives and in addition send any previos
-objects it has received that are in the same group as the most recently
-received group that matches the name.
+B. Deliver any new objects it receives and in addition send any previous
+objects it has received that are in the same group that matches the name.
 
-C. Wait until an object that has a objectiD that matches the name is
+C. Wait until an object that has a objectId that matches the name is
 received then start sending any objects that match the name.
 
-D. Send the most recent object that matches the name then send any new
-objects that match the name. 
 
 ## Name Hashes 
 
@@ -387,23 +383,23 @@ whole names ( wildcard support ).
 
 TODO - Suhas - perhaps move the figure here ???
 
-This is done hashing the origin to first 48 bits. Any relay that forms an
+This is done by hashing the origin to first 48 bits. Any relay that forms an
 connection to an new origin needs to ensure this does not collide with
 an existing origin. The application component is mapped to the next 48
 bits and it is the responsibility of the application to ensure there are
 not collisions within a given origin. Finally the group ID and object ID
 each map to 16 bits.
 
-Design Note: It os possible to let each application define the
+Design Note: It is possible to let each application define the
 size theses boundaries as well as sub boundaries inside the application
 component but for sake of simplicity it is described as fixed boundaries
 for now.
 
-Wildcard search simply turn into a bitmask at the approbate bit location
+Wildcard search simply turn into a bitmask at the appropriate bit location
 of the hashed name. 
 
 The hash names are key part of the design for allowing small objects
-without adding lots of overhead and for effecent implementation of
+without adding lots of overhead and for efficient implementation of
 Relays. 
 
 # Objects
@@ -411,25 +407,25 @@ Relays.
 Once a named object is created, the content inside the named object can
 never be changed. Objects have an expiry time after which they should be
 discarded by caches. Objects have an priority that the relays and
-clients can use to sequence which object to send first. The data inside
-an object is end to end encrypted with keys which are not available to
-Relay.
+clients can use to sequence the sending order. The data inside
+an object is end-to-end encrypted whose keys are not available to
+Relay(s).
 
 # Relays
 
 The relays receive subscriptions and intent to publish request and
-forward them towards the origin Relay. This may send the messages
+forward them towards the origin. This may send the messages
 directly to the Origin Relay or possibly traverse another Relay. Replies
 to theses message follow the reverse direction of the request and when
-the Origin gives the OK to a subscription or request to publish, the
-Relay allows the subscription or future publishes to the Name in the
+the Origin gives the OK to a subscription or intent to publish, the
+Relay allows the subscription or future publishes to the Names in the
 request.
 
 Subscription received are aggregated. When a relay receives a publish
 request with data, it will forward it both towards the Origin and to any
-clients or relays that have a matchin subscription. This "short
+clients or relays that have a matching subscription. This "short
 circuit" of distribution by a relay before the data has even reached the
-Origin servers provides significan latency reduction for nearby client.
+Origin servers provides significant latency reduction for nearby client.
 
 The Relay keeps an outgoing queue of objects to be sent to the each
 subscriber and objects are sent in priority order.
@@ -452,7 +448,7 @@ application.
 * Typically a manifest identifies the domain and application aspects for
   the set of names that can be published.
 
-* The content of Manifest is application defined and end to end
+* The content of Manifest is application defined and end-to-end
   encrypted.
 
 * The manifest is owned by the application's origin server and are
@@ -465,36 +461,32 @@ application.
 
 * The manifest has well known name on the Origin server.
 
-* The manifest would typically be a a group and new version of it could
-  be published with an incremented ObjectID.  Subscriptions of the group
-  would get the latest copy of the manifest. 
-
 Also to note, a given application might provide non QuicR mechanisms to
 retrieve the manifest. 
 
 ## QuicR Video Objects
 
-Most video applications would use the application component et to identity
-which videos stream it was as well as the encoding point such as
-resolution and bit rate. Each independent decode set of frames would go
+Most video applications would use the application component to identity
+the video stream, as well as the encoding point such as
+resolution and bit rate. Each independently decodable set of frames would go
 in a single group, and each frame inside that group would go in a
 separate named object inside the group. The allows an application to
-review a given encoding of the video by subscribing to the applications
-component with a wildcard for group and object IDs. 
+receive a given encoding of the video by subscribing just to the application
+component of the Name with a wildcard for group and object IDs. 
 
 This allows a subscription to get all the frame in the current group if
-it joins lates, or wait till the group before starting to get data based
+it joins lates, or wait until the next group before starting to get data, based
 on the subscription options. Changing to a different bitrate or
-resolution would use a a new subscripting to the appropriate
+resolution would use a a new subscription to the appropriate Name.
 
 The QUIC transport that QuicR is running on provides the congestion
-controll but the application and see what objects are received and
-determin if it should change it's subscription to a different bitrate
+control but the application can see what objects are received and
+determine if it should change it's subscription to a different bitrate
 application component. 
 
-Todays video is often encoded with I frames at a fixed internal but this
-can result in pulsing video quality. Future system may want to insert I
-frames at each change of scene resulting in groups with a variable
+Todays video is often encoded with I-frames at a fixed internal but this
+can result in pulsing video quality. Future system may want to insert I-frames 
+at each change of scene resulting in groups with a variable
 number of frames. QuicR easily supports that. 
 
 ## QuicR Audio Objects
@@ -503,24 +495,25 @@ Each small chuck of audio, such as 10 ms, can be put its own Object.
 
 Future sub 2 kbps audio codecs may take advantage of a rapidly
 updated model that are needed to decode the audio which could result in
-audio needing to use groups like video does to ensure all the objects
+audio needing to use groups like video to ensure all the objects
 needed to decode some audio are in the same group. 
 
 ## QuicR Game Moves Objects
 
-Some game send out a base set of state information then incremental
+Some games send out a base set of state information then incremental
 deltas to this. Each time a new base set is sent, a new group can be
 formed and each increment change as an Object in the group. When new
-players join, they can subscribe to get the current group and all the
-incremental changes to it.
+players join, they can subscribe to sync up to the latest state by 
+subscribing to the current group and the incremental changes that 
+follow.
 
 ## Messaging Objects
 
 Chat applications and messaging system can form a manifest representing
-the roser of the people in a given channel or talk room. The manifest
-can provide the an applications component for each user than
-contributes messages. A subscription to each applications component can
-receive each new message. Each message would be a single
+the roster of the people in a given channel or talk room. The manifest
+can provide information on the application componentd for user that are
+contributes messages. A subscription to each application component enables
+reception of each new message. Each message would be a single
 object. Typically QuicR would be use to get the recent messages and then
 a more traditional HTTP CDN approach could be used to retrieve copies of
 all the older objects.
@@ -530,15 +523,15 @@ all the older objects.
 # Security Considerations
 
 The links between Relay and other Relays or Clients can be encrypted,
-this does not protect the content form Relays. To mitigate this all the
+this does not protect the content from Relays however. To mitigate this all the
 objects need to be end to end encrypted with a keying mechanism outside
-the scope of this protocol. For may applications, simp;y getting the
+the scope of this protocol. For may applications, simply getting the
 keys over HTTPS for a particular object from the origin server will be
 adequate. For other applicants keying based on MLS may be more
 appropriate. Many applications can leverage the existing key managed scheme
 used in HLS and DASH for DRM protected content.
 
-Relays reachable on the internet are assumed to bave a bustiness
+Relays reachable on the Internet are assumed to have a burstiness
 relationship with teh Origin and the protocol provides a way to verify
 that any data moved is on behalf of a give Origin. 
 
@@ -546,7 +539,7 @@ Relays in a local network may choose to process content for any Origin
 but since only local users can access them, their is a way to mange
 which applications use them.
 
-Subscriptions need to be refreshed at least ever 5 seconds to ensure
+Subscriptions need to be refreshed at least every 5 seconds to ensure
 liveness and consent for the client to continue receiving data.
 
 
@@ -559,11 +552,11 @@ architectural mismatches. HTTP is largely designed for a stateless
 server in a client server architecture. The whole concept of the PUB/SUB
 is that the relays are *not* stateless and keep the subscription
 information and this is what allows for low latency and high throughput
-on the relays. In todays CDS, the CDN nodes end up faking the
-credentials of the origin server and this limites how and where they can
+on the relays. In todays CDN, the CDN nodes end up faking the
+credentials of the origin server and this limits how and where they can
 be a deployed. A design with explicitly designed relays that do not need
 to do this, while still assuming an end to end encrypted model so the
-relayes did not have access to the content makes for a better design. 
+relays did not have access to the content makes for a better design. 
 
 It would be possible to start with something that looked like HTTP as
 the protocol between the relays with special conventions for wild cards
@@ -575,7 +568,7 @@ scaleable to simply define a PUB/SUB protocol directly on top of QUIC.
 
 ## QUIC Streams and Datagrams
 
-There and pro and cons to mapping object transport on top of streams or
+There are pro and cons to mapping object transport on top of streams or
 on top of QUIC datagrams. The working group would need to sort this out
 and consider the possibility of using both for different types of data
 and if there should be support for a semi-reliable transport of
