@@ -81,6 +81,38 @@ The client can be behind NATs and firewalls and will often be on a WIFI for cell
 
 TODO ADD FIGURE  - QuicR (simple-arch.png "QuicR Architectural Components")
 
+!--
+~~~ascii-art
+                                           Publisher: quicr://twitch.com/channel-1/video/hi-res/...
+                                           Publisher: quicr://twitch.com/channel-1/video/med-res/...
+                                           ...                        *
+               ┌──────────────────────────────────────────────────────*──────────────────────┐
+               │             Subscribe                                *                      │
+               │ quicr://<ingest-server>/streams/*        ┌───────────*─────────────────┐    │
+               │       ┌───────────────────────┐          │                             │    │
+               │       │     ingest-server     │          │   distribution-serv         │    │
+          ┌────┤       │      [Subscriber]     ├──────────▶      [Publisher]            │    │
+          │    │       └───────────────────────┘          └──────┬──────────────────────┘    │
+          │    └─────────────────────────────────────────────────┼───────────────┼───────────┘
+          │                                                                      │
+  Publish:                                  Pub:
+  quicr://<ingest-server>                   quicr://twitch.com/channel-1/      Sub:quicr://twitch.com/ch
+  /stream123                                video/hi-res/group1/obj12          annel-1/video/hi-res/*
+                                            Pub: quicr://...
+          │                                 Pub: quicr://...                     │
+          │                                                                      │
+          │                                                      │               │
+          │                                                      ▼               │
+┌───────────────────┐                                       ┌───────────────────────────────┐
+│┌────────────────┐ │                                       │         Subscriber            │
+││    Streamer    │ │                                       │                               │
+││  [Publisher]   │ │                                       └───────────────────────────────┘
+│└────────────────┘ │
+└───────────────────┘
+
+~~~
+Figure: Pub/Sub via Origin (No relay)
+!--
 
 Above diagram shows the various components/roles making the QuicR architecture and how it can be leveraged by two different classes of applications; a streaming app and a communication app.
 
@@ -138,9 +170,9 @@ Application component is scoped under a given Domain/Origin. This component iden
 
 The final subcomponent identifies the group and the composed objects. The objects within a group are identified by a monotonically increasing sequence numbers beginning with 0. Each group is similarly identified by monotonically increasing integers.
 
-Example: In this example, the domain component identifies acme.meeting.com domain, the application compoment identifies an instance of a meeting under this domain, say "meeting123", and camera stream from the user "alice". It also identifies the object 17 under part of the group 15.  
+Example: In this example, the domain component identifies acme.meeting.com domain, the application compoment identifies an instance of a meeting under this domain, say "meeting123", and high resolution camera stream from the user "alice". It also identifies the object 17 under part of the group 15.  
 
-```quicr://acme.meeting.com/meeting123/alice/cam5/gro15/obj7```
+```quicr://acme.meeting.com/meeting123/alice/cam5/HiRes/gro15/obj7```
 
 Names within QuicR should adhere to following constraints:
 
@@ -197,7 +229,7 @@ The media for a given channel, fluffy, could be proivided at differnt encoding p
 
 It would be possible to start with something that looked like HTTP as the protcol between the relays with special conventions for wild cards in URLs of a GET and ways to stream non final responses for any responses perhaps using something like multipart MINE. However, most of the existing code and logic for HTTP would not really be usable with the low latency streaming of data. It is probably much simplier and more scableable to simply define a PUB/SUB protocol direclty on top of QUIC.
 
-##QUIC  Streams and Datagrams
+## QUIC  Streams and Datagrams
 
 There and pro and cons to mapping object transport on top of streams or on top of QUIC datagrams. The working group would need to sort this out and consider the possibility of using both for differnt types of data and if there should be suppor for a semi-reliable transport of data. Some objects, for example the manifest, you nearly always want to recieve in a relaible way while other objects have to be realtime.
 
