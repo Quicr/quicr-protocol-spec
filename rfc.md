@@ -28,7 +28,7 @@ surname="Nandakumar"
 fullname="Suhas Nandakumar"
 organization = "Cisco"
   [author.address]
-  email = "fluffy@iii.ca"
+  email = "snandaku@cisco.com"
 
 
 %%%
