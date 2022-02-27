@@ -19,6 +19,18 @@ fullname="Cullen Jennings"
 organization = "cisco"
   [author.address]
   email = "fluffy@iii.ca"
+  [author.address.postal]
+  country = "Canada"
+  
+[[author]]
+initials="S."
+surname="Nandakumar"
+fullname="Suhas Nandakumar"
+organization = "Cisco"
+  [author.address]
+  email = "snandaku@cisco.com"
+
+
 %%%
 
 .# Abstract
