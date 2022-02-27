@@ -59,7 +59,6 @@ named object. QuicR is designed to make it easy to implement relays
 so that fail over could happen between relays with minimal impact to 
 the clients and relays can redirect a client to a different relay.
 
-!--
 ~~~ascii-art 
               ┌────────────┐
               │            │
@@ -81,7 +80,6 @@ the clients and relays can redirect a client to a different relay.
     └──────┘     └──────┘     └──────┘     └──────┘
 ~~~
 Figure: QuicR Delivery Tree
-!--
 
 The design supports sending media and other named objects between a set
 of participants in a game or video call with under a hundred
@@ -205,7 +203,6 @@ non-normatively discussed
 
 ## QuicR Delivery Network Architecture with Origin as the only Relay Function.
 
-!--
 ~~~ascii-art
                        +-------------+                         
                        |Relay        |                         
@@ -221,7 +218,6 @@ non-normatively discussed
 | Publisher |                      |Subscriber|                
 +-----------+                      +----------+                 
 ~~~
-!--
 
 The above picture shows QuicR delivery network for an hypothetical 
 streaming architecture rooted at the Origin Relay (for the domain
@@ -236,7 +232,6 @@ Relay (as Publisher) might be encoded into multiple qualities.
 
 ## QuicR Delivery Network Architecture 
 
-!--
 ~~~ascii-art 
                   +--------+                                     
            +----> |Realay-O| <----------------+                  
@@ -261,7 +256,6 @@ Relay (as Publisher) might be encoded into multiple qualities.
   | Alice|    |Bob|              |Carl|         |Derek|          
   +------+    +---+              +----+         +-----+
 ~~~
-!--
 
 The above picture shows Quicr media delivery tree for a sample
 video conferencing example, formed with multiple relays in the 
