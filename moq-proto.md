@@ -1,8 +1,8 @@
-## Publish API/Message
+# Publish API/Message
 
 Entities the want to send data will use Publish API to trigger ```PUBLISH``` messages from a QuicR client to a QuicR server (Relay(s) / Origin Server). The publish message identies active flow of named data from the client to the server, such a data can be originating from a given QuicR endpoint client or a might be relayed by other entities. In the latter case, the relaying entitiy MUST NOT change the name associated with the data being published.
 
-[[TODO Add details end to end integrity protected and e2ee protected parts of the message ]]
+TODO Add details end to end integrity protected and e2ee protected parts of the message 
 
 In general, the Publish API specifices following thing about the data being published.
 
@@ -109,7 +109,7 @@ The ```PUBLISH_INTENT``` message indicates the names chosen by a Publisher for t
  
  `A>A cloud relay could start caching the data associated with the names that has not been validated yet by the origin server and decide to flush its cache if no PUBLISH_INTENT_OK is received within a given time. This is an optimization that would allow publishers to start transmitting the data without needing to wait a RTT.`
 
- [[todo add a note on allowing these messages to piggybacked with other messages to avoid RTT mid session when there is an intent to publish new names.]]
+ todo add a note on allowing these messages to piggybacked with other messages to avoid RTT mid session when there is an intent to publish new names.
 
  `A> Names chosen by the publishers MUST be unique with in a given session to avoid collisions. It is upto the application define the necessary rules to ensure the uniqueness constraint. Cloud entities like Relays are agnostic to these rules and handle collisions by either overriding or dropping the  associated data.` 
 
@@ -191,7 +191,7 @@ Also store most recent X fully assembled named data objets (X may be 3-5) to all
 A relay that wants to shutdown and use the redirect message to move traffic to a new relay
 If a relay has failed and restarted or been load balanced to a different relay, the client will need to resubscribe to the new relay after setting up the connection.
 
-[[todo Cluster so high reliable relays should share subscription info and publication to minimize of loss of data during a full over.]]
+todo Cluster so high reliable relays should share subscription info and publication to minimize of loss of data during a full over.
 
 ## Relay Discovery
 Local relays can be discovered via MDNS query to TODO.
@@ -293,15 +293,15 @@ QuicR client participating in a realtime conference has few options at the API l
 * When sending video IDR data, ```IS_SYNC_POINT``` is set to true.
 * When sending data for a layer video codec, ```IS_RELIABLE``` option can be set to true for certain layers. Also the priority levels between the layer may be adjusted to report relative importance.
 * Selectively retranmissions can be enbaled based on the importance of the data.
-* [[todo add more flows]]
+*  todo add more flows
 
 ## Example 
 
 Below picture depicts a simplified QuicR Publish/Subscribe protocol flow where participants exchange audio in a 3-party realtime audio conference.
 
-!---
-![Realtime Conference](conference.png "A/V Conference Pub/Sub Flow")
-!---
+
+TODO ADD FIGURE  Realtime Conference   conference.png
+
 
 
 In the depicted protocol flow, Alice is the publisher while Bob and Carl are the subscribers. As part of joining into the conference, Bob and Carl subscribe to the name __quicr://acme.meetings.com/meeting123/*__  to receive all the media streams being published for the meeting instance __meeting123__. Their subscriptions are sent to Origin Server via a Relay.The Relay aggregates the subscriptions from Bob and Carl forwarding one subscribe message. On Alice publishing her media stream fragments from a camera source to the Origin server, identified via the names __quicr://acme.meetings.com/meeting123/alice/cam5/t1000/, the same is forwaded to Relay. the relay will in turn forward the same to Alice and Bob based on their subscriptions.
@@ -328,7 +328,7 @@ quicr://acme.meetings.com/meeting123/Alice/4444/...
 ```
 
 Manifest encoded as json objects might capture the information as below. [This encoded is for information purposes only.]
-[[TODO - Do we need a common manifest format ???]]
+TODO - Do we need a common manifest format ???
 
 ```
 {
@@ -491,10 +491,10 @@ Consumers end points subscribe to one or more names representing the quality bas
 
 In the scenarios, where the client is trying to catchup, it does so by sending ```SYNC_CATCHUP``` message to allow relay to forward the data from the most recent fully assembled frame(s) based on the __AFTERTIME__ field.
 
-[[todo: Manifest need not be as complicated as HLS/DASH support for 
-the streaming use-cases supported by QuicR]]
+todo: Manifest need not be as complicated as HLS/DASH support for 
+the streaming use-cases supported by QuicR
 
-[[todo: probably we need to add  a note saying QuicR doesn't replace all streaming use-cases]]
+todo: probably we need to add  a note saying QuicR doesn't replace all streaming use-cases
 
 
 # Virtual/Augmented Reality, Gaming Applications
@@ -507,7 +507,7 @@ Goals of such applications typically involve
 - Easily extensible for applications to send theirown custom data
 - Efficient distribution to multiple users
 
-[[todo finsih this]]
+todo finsih this
 
 # Security
 

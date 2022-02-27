@@ -9,7 +9,7 @@ keyword = ["realtime","quicr"]
 [seriesInfo]
 status = "informational"
 name = "Internet-Draft"
-value = "draft-jennings-moq-arch"
+value = "draft-jennings-moq-proto"
 stream = "IETF"
 
 [[author]]
@@ -39,7 +39,7 @@ organization = "Cisco"
 
 {mainmatter}
 
-{{moq-arch.md}}
+{{moq-proto.md}}
 
 {backmatter}
 
