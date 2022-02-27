@@ -47,7 +47,7 @@ PUBLISH {
 Flags := Reserved (3) | IsDiscardable (1) | Is_Sync_Point(1) | Priority (3)
 ```
 
-## Subscribe API/Message
+# Subscribe API/Message
 
 Entities that intend to receive data will do so via subscriptions to named data. The Subscribe API triggers sending ```SUBSCRIBE``` messages. Subscriptions are sent from the QuicR clients to the origin server(s) (via relays, if present) and are typically processed by the relays. See {#relay_behavior} for further details. All the subsriptions MUST be authenticated and authorized. 
  
@@ -70,15 +70,15 @@ SUBSCRIBE {
 NAMES := array of names for subscriptons.
 ```
 
-### Aggregating Subscriptions
+## Aggregating Subscriptions
 
 Subscriptions are aggregated at entities that perform Relay Function. Aggregating subscriptions helps reduce the number of subscriptions for a given named data in transit and also enables efficient disrtibution of published media with minimal copies between the client and the origin server , as well as reduce the latencies when there are multiple subscribers for a given named-data behind a given cloud server.
 
-### Wildcarded Names
+## Wildcarded Names
 
 The name used in ```SUBSCRIBE``` can be truncated by skipping the right most segments of the name that is application specific, in which case it will act as a wildcard subscription to all names that match the provided part of the name. For example, in an web conferencing use case, the client may subscribe to just the origin and ResourceID to get all the media for a particular conference. Subscription message get a success or error response.
 
-## PUBLISH_INTENT/PUBLISH_INTENT_OK Message
+# PUBLISH_INTENT/PUBLISH_INTENT_OK Message
 
 [[todo: re-evaluate these messages - do we need this in the protocol or out of band]]
 
@@ -113,7 +113,7 @@ The ```PUBLISH_INTENT``` message indicates the names chosen by a Publisher for t
 
  `A> Names chosen by the publishers MUST be unique with in a given session to avoid collisions. It is upto the application define the necessary rules to ensure the uniqueness constraint. Cloud entities like Relays are agnostic to these rules and handle collisions by either overriding or dropping the  associated data.` 
 
-## SUBSCRIBE_REPLY Message
+# SUBSCRIBE_REPLY Message
 A ```SUBSCRIBE_REPLY``` provides result of the subsciptions. It lists the names that were successfully in subscrptions and ones that failed to do so.
 
 ```
@@ -125,7 +125,7 @@ SUBSCRIBE_REPLY
 }
 ```
 
-## SUBSCRIBE_CANCEL Message
+# SUBSCRIBE_CANCEL Message
 
 A ```SUBSCRIBE_CANCEL``` message indicates a given subscription is no longer valid. This message is an optional message and is sent to indicate the peer to discontinued interest in a given named data. 
 
@@ -138,7 +138,7 @@ SUBSCRIBE_CANCEL
 }
 ```
 
-## SYNC_CATHCUP Message
+# SYNC_CATHCUP Message
 
 A ```SYNC_CATHCUP``` message is sent from a QuicR client to the server requesting to refresh to the latest state of a given named data. This is used to allow for clients to perform near realtime catchup or quick sync flows.
 
@@ -255,11 +255,13 @@ QUIC support ACK & Retranmission for QUIC Streams, but just ACKs for QUIC DATAGR
 This work should evaluate support of forward error correction mechanisms for QUIC DATAGRAMs at the minimum to allow realtime flows to be resilient under losses. The same may be exposed to QUIC Streams as well if deemed necessary.
 
 
-# Real-time Conferencing Application
+# QuicR Usages
+
+## Real-time Conferencing Application
 
 This subsection expands on using QuicR as the media delivery protocol for a real-time multiparty A/V conferencing applications.
 
-## Naming
+### Naming
 
 Objects/Data names are formed by concatenation of the domain and application components. Below provides one possible way to subdivide the application component portion of the data names for a conferencing scenario along with their integer bit lengths when encoded as interger shortnames.
 
@@ -277,7 +279,7 @@ A conforming name is formatted as URLs like:
 
 and ShortNames are formed from the cominaton fo the ResrouceID, SenderID, SourceID, MediaTime. Note the Origin is not in the ShortName and is assumed from the context in which the ShortName is used.
 
-## Manifest
+### Manifest
 
 As a prerequisite step, participants exchange their transmit and receive capabilities like sources, qualities, media types and so on, with application server (can be origin server). This is done out-of-band and is not in the scope of QuicR protocol. 
 
@@ -287,7 +289,7 @@ A manifest may get updated several times during a session - either due to capabi
 
 Participants who wish to receive media from a given meeting in a web conference will do so by subscribing to the meeting's manifest. The manifest will list the name of the active publishers. 
 
-## API Considerations
+### API Considerations
 QuicR client participating in a realtime conference has few options at the API level to choose when published data :
 
 * When sending video IDR data, ```IS_SYNC_POINT``` is set to true.
@@ -295,7 +297,7 @@ QuicR client participating in a realtime conference has few options at the API l
 * Selectively retranmissions can be enbaled based on the importance of the data.
 *  todo add more flows
 
-## Example 
+### Example 
 
 Below picture depicts a simplified QuicR Publish/Subscribe protocol flow where participants exchange audio in a 3-party realtime audio conference.
 
@@ -376,7 +378,7 @@ With the names as above, any subscriber retrieving the manifest has the necessar
 `A>The details on security/trust relationship established between the endpoints,the relay and the Origin server is ignored from the depiction for simplicity purposes.`
 
 
-# Push To Talk Media Delivery Application
+## Push To Talk Media Delivery Application
 
 Frontline communications application like Push To Talk have close semblances with the publish/subscribe metaphor. In a typical setup, say a retail store, there are mutiple channels (bakery, garden) and retail workers with PTT communication devices access the chatter over such channels by tuning into them. In a typical use-case, the retails workers might want to tune into one or more channels of their interest and expect the media delivery system to deliver the media asynchornusly as talk spurts.
 
@@ -386,7 +388,7 @@ In general such a system needs the following:
 * A way for system to efficiently distribute the media to all the tuned in end users per channel.
 * A way for end user to catch up and playback when switching the channels.
 
-## Naming
+### Naming
 
 One can model naming for PTT applications very similar to the design used for "Realtime conferencing applications".
 
@@ -400,12 +402,12 @@ In the case of PTT, the following mappings can be considered for the application
 * SenderID   - Authenticated user's Id who is actively checked in a given frontline workspace (ex: retail store)
 * MediaTime  - Same as in the case of "Realtime Conferencing Application"
 
-## Manifest
+### Manifest
 
 For PTT application, a manifest describes various active PTT channels as the main resource.
 Subsribers who tune into channels typically get the names from the manifest to do so. Publshers publish their media to channels that they are authorized to. 
 
-## Example
+### Example
 An example retail store scenario where users Alice, Bob subscribe to the bakery channel and Carl subscribes to the gardening channel. Also an annoucement from the store manager Tom, on bakery channel gets delivered to Alice and Bob but not Carl.
 
 
@@ -441,7 +443,7 @@ Manifest encoded as json objects might capture the information as below. [This e
 ```
 Alice and Bob shall send ```SUBSCRIBE``` to channel Bakery and Carl does the same for channel Gardening.
 
-# Low Latency Streaming Applications
+## Low Latency Streaming Applications
 
 A typical streaming application can be divided into 2 halves - media ingest and media distribution. Media ingestion is done via pushing one or more streams of different qualities to a central server. Media Distribution downstream is customized (via quality/rate adapation) per consumer by the central server.
 
@@ -461,7 +463,7 @@ Few sample scenarios that have such constrainsts are listed below:
 
 Visual and aural quality are secondary in priority in these scenarios to sync and latency. This in turn increases revenue potential from a game/event.
 
-# Naming and Manifest Considerations
+### Naming and Manifest Considerations
 For downstream distribution of media data to clients with varying requirements, the central server (along with the source) generate different quality media representations. Each such quality is represented with a unique name and subscribers are made know of the same via the Manifest.
 
 ```
@@ -497,7 +499,7 @@ the streaming use-cases supported by QuicR
 todo: probably we need to add  a note saying QuicR doesn't replace all streaming use-cases
 
 
-# Virtual/Augmented Reality, Gaming Applications
+## Virtual/Augmented Reality, Gaming Applications
 
 Applications, such as games or the ones based on virtual reality environment, have to need to share state about various objects across the network. This involves pariticipants sending small number of objects with state that need to be synchronized to the other side and it needs to be done periodically to keep the state up to date and also reach eventually consistency under losses.
 
