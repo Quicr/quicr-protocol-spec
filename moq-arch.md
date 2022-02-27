@@ -92,15 +92,15 @@ under a hundred milliseconds based on applications needs. It can
 also be used as low latency publish/subscribe system for real time
 systems such as messaging, gaming, and IoT.
 
-QuicR is pronounced something close to
-“quicker” but with more of a pirate "arrrr" at the end.
-
-
 # Contributing
 
 All significant discussion of development of this protocol is in the
 GitHub issue tracker at: ```
 https://github.com/fluffy/draft-jennings-moq-arch ```
+
+QuicR is pronounced something close to "quicker" but with more of a
+pirate "arrrr" at the end.
+
 
 # Terminology
 
