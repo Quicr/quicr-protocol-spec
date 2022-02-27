@@ -198,12 +198,12 @@ delivery tree allowing :
 
 - Publishing entities to publish named data
 - Subscribers to express interest in the named objects
-- Delivery tree made up of Relay(s) to allow the flow of the named objects.
+- Delivery tree made up of one or more Relays to allow the flow of the named objects.
 
 In the following subsections, 2 common QuicR delivery tree archiectures are 
 non-normatively discussed 
 
-## QuicR Delivery Network Architecture via Origin as the only Relay Function.
+## QuicR Delivery Network Architecture with Origin as the only Relay Function.
 
 !--
 ~~~ascii-art
@@ -223,7 +223,18 @@ non-normatively discussed
 ~~~
 !--
 
-## QuicR Delivery Network Architecture via Relay delivery network
+The above picture shows QuicR delivery network for an hypothetical 
+streaming architecture rooted at the Origin Relay (for the domain
+tw.com). In this architecture, the media contribution is done by 
+publishing named objects corresponding to channel-22 to the ingest
+server at the Orgin Relay. Media consumption happens via 
+subscribes sent to the Origin Relay to wildcarded name (ch22/*) 
+for all media streams happening over the named channel-22. 
+The media published either by the source publisher or the 
+Relay (as Publisher) might be encoded into multiple qualities.
+
+
+## QuicR Delivery Network Architecture 
 
 !--
 ~~~ascii-art 
@@ -242,28 +253,32 @@ non-normatively discussed
  pub1:alice-hi|  |              |    |          |    |           
  pub2:alice-low  |              |    |          |    |           
   |           |  |              |    |          |    |           
-  |          pub:alice-low     pub:alice-hi    pub:alice-low     
+  |          pub:alice-low     pub:alice-hi,low pub:alice-hi,low    
   |           |  |              |    |          |    |           
-  |           | sub:alice-low   |   sub:alice-hi|   sub:alice-low
+  |           | sub:alice-low   |   sub:alice*  |   sub:alice*
   |           v  |              v    |          v    |           
   +------+    +---+              +----+         +-----+          
-  | Alice|    |Bob|              |  Carl        |Derek|          
+  | Alice|    |Bob|              |Carl|         |Derek|          
   +------+    +---+              +----+         +-----+
 ~~~
 !--
 
-
-
-Above diagram shows the various components/roles making the QuicR
-architecture and how it can be leveraged by two different classes of
-applications; a streaming app and a communication app.
-
-TODO: explain the picture including the various components of
-publishers, subscribers, origin server
-
-TODO: explain that as the pub go up the tree, they get short circuit
-sent to any subscriber on the the relay they traverse. Huge impact to
-latency for nearby the producer of the media.
+The above picture shows Quicr media delivery tree for a sample
+video conferencing example, formed with multiple relays in the 
+network. 
+The example conference has 4 participants with Alice
+being the publisher and rest being the subscribers. 
+Alice's is capable of publishing video streams at 2 qualities identified
+by their appropriate names. Bob subscribes to a low resolution
+video feed from alice, where as Carl/Derek carryout wildcard
+subscribes to all the qualties of video feed published by Alice.
+All the subscribes are sent to the Origin Relay and are 
+saved at the on-path Relays, this allowing for "short-circuited"
+delivery of published data at the relays. In the above example,
+Bob gets Alice's published data directly from Relay-A instead 
+of hairpinning from the Origin Relay. Carl and Derek, however
+get their video stream relayed from Alice via Origin Relay 
+and Relay-B.
 
 # Names and Named Objects
 
@@ -295,18 +310,6 @@ The names of each object in QuicR is composed of the following components:
 3. Group ID Component
 4. Object ID Component 
 
-!--
-~~~ascii-art
-┌─────────────┬───────────────┬───────────────┬─────────────┐
-│ Domain      │ Appication    │ GroupID       │ ObjectID    │
-│ Component   │ Component     │ Component     │ Component   │
-└─────────────┴───────────────┴───────────────┴─────────────┘
-    48 bits        48 bits         16 bits       16 bits
-~~~
-Figure: QuicR Name
-!--
-
-
 
 Domain component uniquely identifies a given application domain. This is
 like a HTTP Origin and uniquely identifies the application and a root
@@ -334,6 +337,49 @@ object 17 under part of the group 15.
 quicr://acme.meeting.com/meeting123/alice/cam5/HiRes/15/17
 ```
 
+## Name Hashes 
+
+All Names need to hash or map down to 128 bits. This allows for:
+
+* compact representation for efficient transmission and storage,
+
+* cache friendly datatypes ( like Keys in CDN caches) for storage and
+lookup purposes and,
+
+* enable rapid data lookup at the relays based on partial as well as
+whole names ( wildcard support ).
+
+!--
+~~~ascii-art
+┌─────────────┬───────────────┬───────────────┬─────────────┐
+│ Domain      │ Appication    │ GroupID       │ ObjectID    │
+│ Component   │ Component     │ Component     │ Component   │
+└─────────────┴───────────────┴───────────────┴─────────────┘
+    48 bits        48 bits         16 bits       16 bits
+~~~
+Figure: QuicR Name
+!--
+
+
+This is done by hashing the origin to first 48 bits. Any relay that forms an
+connection to an new origin needs to ensure this does not collide with
+an existing origin. The application component is mapped to the next 48
+bits and it is the responsibility of the application to ensure there are
+not collisions within a given origin. Finally the group ID and object ID
+each map to 16 bits.
+
+Design Note: It is possible to let each application define the
+size theses boundaries as well as sub boundaries inside the application
+component but for sake of simplicity it is described as fixed boundaries
+for now.
+
+Wildcard search simply turn into a bitmask at the appropriate bit location
+of the hashed name. 
+
+The hash names are key part of the design for allowing small objects
+without adding lots of overhead and for efficient implementation of
+Relays. 
+
 ## Wildcarding with Names
 
 QuicR allows subscribers to request for media based on wildcard'ed
@@ -359,38 +405,7 @@ C. Wait until an object that has a objectId that matches the name is
 received then start sending any objects that match the name.
 
 
-## Name Hashes 
 
-All Names need to hash or map down to 128 bits. This allows for:
-
-* compact representation for efficient transmission and storage,
-
-* cache friendly datatypes ( like Keys in CDN caches) for storage and
-lookup purposes and,
-
-* enable rapid data lookup at the relays based on partial as well as
-whole names ( wildcard support ).
-
-TODO - Suhas - perhaps move the figure here ???
-
-This is done by hashing the origin to first 48 bits. Any relay that forms an
-connection to an new origin needs to ensure this does not collide with
-an existing origin. The application component is mapped to the next 48
-bits and it is the responsibility of the application to ensure there are
-not collisions within a given origin. Finally the group ID and object ID
-each map to 16 bits.
-
-Design Note: It is possible to let each application define the
-size theses boundaries as well as sub boundaries inside the application
-component but for sake of simplicity it is described as fixed boundaries
-for now.
-
-Wildcard search simply turn into a bitmask at the appropriate bit location
-of the hashed name. 
-
-The hash names are key part of the design for allowing small objects
-without adding lots of overhead and for efficient implementation of
-Relays. 
 
 # Objects
 
@@ -464,10 +479,10 @@ separate named object inside the group. The allows an application to
 receive a given encoding of the video by subscribing just to the application
 component of the Name with a wildcard for group and object IDs. 
 
-This allows a subscription to get all the frame in the current group if
+This allows a subscription to get all the frames in the current group if
 it joins lates, or wait until the next group before starting to get data, based
 on the subscription options. Changing to a different bitrate or
-resolution would use a a new subscription to the appropriate Name.
+resolution would use a new subscription to the appropriate Name.
 
 The QUIC transport that QuicR is running on provides the congestion
 control but the application can see what objects are received and
@@ -479,6 +494,51 @@ can result in pulsing video quality. Future system may want to insert I-frames
 at each change of scene resulting in groups with a variable
 number of frames. QuicR easily supports that. 
 
+### RUSH over QuicR
+RUSH is an application-level protocol for ingesting live video. This
+section defined at a higher level on how the aspects from the RUSH protocol 
+could be realized with QuicR.
+
+RUSH's video frame is equivalent to QuicR video object that represents
+an instance of encoder output. For video ingestion, the RUSH publisher 
+can assign the same groupId for all the frames generated between the I-Frames
+and the RUSH's frameID can be directly mapped to QuicR's object ID. 
+RUSH multistream mode can be easily supported by publishing each frame 
+over QUIC Stream indicated via QuicR API, since QuicR supports both
+the QUIC Datagram and QUIC Stream modes of transport.
+
+The identifiers for the track and session forms the application 
+component of the name. 
+
+Below is an example that shows RUSH's video frame mapped to
+QuicR name for the session1, track 12 and video-id that maps 
+to a given encoding. The groupId and objectId follow the encoder 
+output. The payload of the published message will be formed by 
+the actual encoded data along with metadata such as 
+PresentationTimeStamp (PTS) and so on.
+
+
+```quicr://rush-ingest-server/session1/track12/video-id/group1/object10``` 
+
+### Warp over QuicR
+
+Warp is a segmented live video transport protocol. Warp maps 
+live media to QUIC streams based on the underlying media encoding. 
+
+Conceptually, each Warp video media segment maps to QuicR groupID and frames
+within segment to QuicR objectID. Warp video media segments 
+are made up of I-Frames and zero or more related frames, which
+correspon to QuicR group of objects. QuicR named objects correspond 
+to these frames mapped to these segments and are published individually. 
+For a given channel and vidoe quality, a segment and its frames can 
+be mapped to QuicR name as below:
+
+```quicr://twitch.com/channel-fluffy/video-quality-id/group12/object0```
+
+In this example, groupId 12 maps to Warp segmentId 12 and objectId 0
+corresponds to I-frame within that segment.
+
+
 ## QuicR Audio Objects
 
 Each small chuck of audio, such as 10 ms, can be put its own Object.
@@ -487,6 +547,7 @@ Future sub 2 kbps audio codecs may take advantage of a rapidly
 updated model that are needed to decode the audio which could result in
 audio needing to use groups like video to ensure all the objects
 needed to decode some audio are in the same group. 
+
 
 ## QuicR Game Moves Objects
 
