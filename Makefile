@@ -6,35 +6,35 @@
 
 .PHONE: all clean lint format
 
-all: gen/draft-jennings-moq-architecture.txt
+all: gen/draft-jennings-moq-proto.txt
 
-html: gen/draft-jennings-moq-architecture.html
+html: gen/draft-jennings-moq-proto.html
 
 clean:
 	rm -rf gen/*
 
-lint: gen/draft-jennings-moq-architecture.xml
-	rfclint gen/draft-jennings-moq-architecture.xml
+lint: gen/draft-jennings-moq-proto.xml
+	rfclint gen/draft-jennings-moq-proto.xml
 
 format:
 	mkdir -p gen
 	mmark  moq-arch.md >  gen/moq-arch.md
 	echo updated MD is in  gen/moq-arch.md
 
-gen/draft-jennings-moq-architecture.xml: rfc.md abstract.md  moq-arch.md contributors.md
+gen/draft-jennings-moq-proto.xml: rfc.md abstract.md  moq-proto.md contributors.md
 	mkdir -p gen
-	mmark  rfc.md > gen/draft-jennings-moq-architecture.xml
+	mmark  rfc.md > gen/draft-jennings-moq-proto.xml
 
-gen/draft-jennings-moq-architecture.txt: gen/draft-jennings-moq-architecture.xml
-	xml2rfc --text --v3 gen/draft-jennings-moq-architecture.xml
+gen/draft-jennings-moq-proto.txt: gen/draft-jennings-moq-proto.xml
+	xml2rfc --text --v3 gen/draft-jennings-moq-proto.xml
 
-gen/draft-jennings-moq-architecture.pdf: gen/draft-jennings-moq-architecture.xml
-	xml2rfc --pdf --v3 gen/draft-jennings-moq-architecture.xml
+gen/draft-jennings-moq-proto.pdf: gen/draft-jennings-moq-proto.xml
+	xml2rfc --pdf --v3 gen/draft-jennings-moq-proto.xml
 
-gen/draft-jennings-moq-architecture.html: gen/draft-jennings-moq-architecture.xml
-	xml2rfc --html --v3 gen/draft-jennings-moq-architecture.xml
+gen/draft-jennings-moq-proto.html: gen/draft-jennings-moq-proto.xml
+	xml2rfc --html --v3 gen/draft-jennings-moq-proto.xml
 
-gen/doc-jennings-moq-architecture.pdf: abstract.md  moq-arch.md contributors.md 
+gen/doc-jennings-moq-proto2.pdf: abstract.md  moq-arch.md contributors.md 
 	mkdir -p gen 
-	pandoc -s title.md abstract.md  moq-arch.md contributors.md -o gen/doc-jennings-moq-architecture.pdf
+	pandoc -s title.md abstract.md  moq-arch.md contributors.md -o gen/doc-jennings-moq-proto2.pdf
 
