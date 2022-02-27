@@ -67,18 +67,18 @@ the clients and relays can redirect a client to a different relay.
               │       ┌────────┐
               │   ▬ ▬▶│Relay-0 │ ◀▬▬ ▬▬ ▬▮
           pub │  ▮    │ Orgin  ├┐        ▮
-              │  ▮     ────────┘│        ▮
+              │  ▮    └────────┘│        ▮
               │  ▮ sub          │        ▮ sub
               │  ▮          pub │        ▮
               │  ▮              │        ▮
          ┌───────▮┐ ◀▬▮         │  ┌─────▮──┐
      ┌──▶│ Relay-1│   ▮         └─▶│ Relay-2│◀▮▮
-     │   └─────┬──┘   ▮             ▲───┬───┘  ▮
- pub │         │      ▮ sub     sub ▮   │      ▮ sub
-     │      pub│      ▮             ▮   │      ▮
-    ┌┴─────┐   │ ┌────▮─┐     ┌─────▮┐  │  ┌───▮──┐
-    │Alice │   └▶│ Bob  │     │ Carl │◀─┴─▶│Derek │
-    └──────┘     └──────┘     └──────┘ pub └──────┘
+     │   └─────┬──┘   ▮             ▲──┬────┤  ▮
+ pub │         │      ▮ sub     sub ▮  │    │  ▮ sub
+     │      pub│      ▮             ▮  │pub ▼  ▮
+    ┌┴─────┐   │ ┌────▮─┐     ┌─────▮┐ │   ┌───▮──┐
+    │Alice │   └▶│ Bob  │     │ Carl │◀┘   │Derek │
+    └──────┘     └──────┘     └──────┘     └──────┘
 ~~~
 Figure: QuicR Delivery Tree
 !--
@@ -92,15 +92,15 @@ under a hundred milliseconds based on applications needs. It can
 also be used as low latency publish/subscribe system for real time
 systems such as messaging, gaming, and IoT.
 
+QuicR is pronounced something close to
+“quicker” but with more of a pirate "arrrr" at the end.
+
+
 # Contributing
 
 All significant discussion of development of this protocol is in the
 GitHub issue tracker at: ```
 https://github.com/fluffy/draft-jennings-moq-arch ```
-
-QuicR is pronounced something close to "quicker" but with more of a
-pirate "arrrr" at the end.
-
 
 # Terminology
 
@@ -536,7 +536,7 @@ be mapped to QuicR name as below:
 ```quicr://twitch.com/channel-fluffy/video-quality-id/group12/object0```
 
 In this example, groupId 12 maps to Warp segmentId 12 and objectId 0
-corresponds to I-frame within that segment.
+corresponds to I-frame within tthat segment.
 
 
 ## QuicR Audio Objects
