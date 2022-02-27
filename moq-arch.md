@@ -2,87 +2,99 @@
 
 # Introduction
 
+Recently new usecases have emerged requiring higher scalability of
+delivery for interactive realtime applications and much lower latency
+for streaming applications and a combination thereof. On one side are
+use cases such as normal web conferences wanting to distribute out to
+millions of viewers and allow viewers to instantly move to
+being a presenter. On the other side are usescases such as streaming a
+soccer game to millions of people including people in the stadium
+watching the game live. Viewers watching an e-sports event want to be
+able to comment with low latency to ensure the interactivity aspects
+between what different viewers are seeing. All of these usescases 
+push towards latencies that are in the order of 100ms over the 
+natural latency the network causes.
+
 Interactive realtime applications, such as web conferencing systems,
 require ultra low latency (< 150ms). Such applications create their own
 application specific delivery network over which latency requirements
 can be met. Realtime transport protocols such as RTP provide the basic
 elements needed for realtime communication, both contribution and
 distribution, while leaving aspects such as resiliency and congestion
-control to be provided by each application.
-
-On the other hand, media streaming applications are much more tolerant
-to latency and require highly scalable media distribution. Such
-applications leverage existing CDN networks, used for optimizing web
-delivery, to distribute media in common video streaming applications.
-
-Recently new use cases have emerged requiring higher scalability of
-delivery for interactive realtime applications and much lower latency
-for streaming applications and a combination thereof. On one side are
-use cases such as normal web conferences wanting to distribute out to
-millions of viewers and allow any of those viewers to instantly move to
-being a presenter. On the other side are uses case such as steaming a
-soccer game to millions of people including people in the stadium
-watching the game live. Viewers watching an e-sports event want to be
-able to comment with low latency between the live play to ensure the
-interactivity aspects
-by having low latency between what different viewers are seeing. All
-of these uses cases push towards latencies that are in the order of
-100ms over the natural latency the network causes.
+control to be provided by each application. On the other hand, media 
+streaming applications are much more tolerant to latency and require 
+highly scalable media distribution. Such applications leverage existing 
+CDN networks, used for optimizing web delivery, to distribute media 
+in common video streaming applications.
 
 This document outlines a unified architecture for data delivery that
 enables a wide range of realtime applications with different resiliency
-and latency needs. The architecture defines and uses QuicR, a delivery
+and latency needs. 
+
+## QuicR 
+
+The architecture defines and uses QuicR, a delivery
 protocol that is based on a publish/subscribe metaphor where client
 endpoints publish and subscribe to named objects that is sent to, and
 received from, relays that forms an overlay delivery network similar to
-what CDN provides today. QuicR is pronounced something close to
-“quicker” but with more of a pirate "arrrr" at the end.
+what CDN provides today. The subscribe messages allow subscription to a 
+name that includes a wildcard to match multiple published names, so a 
+single subscribe can allow a client to receive publishes for a wide class 
+of named objects. Objects are named such that it is unique for the
+relay/delivery network and scoped to an application. 
 
-The subscribe messages allow subscription to a name that includes a
-wildcard to match multiple published names, so a single subscribe can
-allow a client to receive publishes for a wide class of named objects.
-
-A typical use case is an interactive communication application,
-e.g. video conferencing, where each endpoint in the conference
-subscribes to the media from the participants in the conference and at
-the same time publishes its own media. The cloud device that receives
-the subscriptions and distributes media is called a Relay and is similar
-to an application-independent SFU in the audio/video conferencing uses
-cases and similar to a CDN cache node in traditional streaming.
-
-The Relays are arranged in a logical tree where, for a given application,
-there is an origin Relay at root of the tree that controls the
-namespace. Publish messages are sent towards the root of the tree and
-down the path of any subscribers to that named data.
-
-The QuicR protocol takes care of transmitting named objects from the
-Publisher to the Relay and from the Relay to all the subscribers of the
-named object. It provides transport services selected and tuned based on
-application requirements (with the support of underlying transport,
-where necessary) such as detecting available bandwidth, fragmentation
-and reassembly, resiliency, congestion control and prioritization of
+QuicrR provides services based on application requirements 
+(with the support of underlying transport, where necessary) 
+such as detecting available bandwidth, fragmentation and 
+reassembly, resiliency, congestion control and prioritization of
 data delivery based on data lifetime and importance of data. It is
 designed to be NAT and firewall traversal friendly and can be fronted
-with load balancers. Objects are named such that it is unique for the
-relay/delivery network and scoped to an application. Subscriptions can
-include a form of wildcarding to the named object.
+with load balancers. 
+
+The Relays are arranged in a logical tree (as shown below) where, 
+for a given application, there is an origin Relay at root of the tree 
+that controls the namespace. Publish messages are sent towards the 
+root of the tree and down the path of any subscribers to that 
+named object. QuicR is designed to make it easy to implement relays 
+so that fail over could happen between relays with minimal impact to 
+the clients and relays can redirect a client to a different relay.
+
+!--
+~~~ascii-art 
+              ┌────────────┐
+              │            │
+              │            ▼
+              │       ┌────────┐
+              │   ▬ ▬▶│Relay-0 │ ◀▬▬ ▬▬ ▬▮
+          pub │  ▮    │ Orgin  ├┐        ▮
+              │  ▮     ────────┘│        ▮
+              │  ▮ sub          │        ▮ sub
+              │  ▮          pub │        ▮
+              │  ▮              │        ▮
+         ┌───────▮┐ ◀▬▮         │  ┌─────▮──┐
+     ┌──▶│ Relay-1│   ▮         └─▶│ Relay-2│◀▮▮
+     │   └─────┬──┘   ▮             ▲───┬───┘  ▮
+ pub │         │      ▮ sub     sub ▮   │      ▮ sub
+     │      pub│      ▮             ▮   │      ▮
+    ┌┴─────┐   │ ┌────▮─┐     ┌─────▮┐  │  ┌───▮──┐
+    │Alice │   └▶│ Bob  │     │ Carl │◀─┴─▶│Derek │
+    └──────┘     └──────┘     └──────┘ pub └──────┘
+~~~
+Figure: QuicR Delivery Tree
+!--
 
 The design supports sending media and other named objects between a set
 of participants in a game or video call with under a hundred
 milliseconds of latency and meets the needs of web conferencing
 systems. The design can also be used for large scale streaming to
 millions of participants with latency ranging from a few seconds to
-under a  hundred milliseconds based on applications needs. It can
+under a hundred milliseconds based on applications needs. It can
 also be used as low latency publish/subscribe system for real time
 systems such as messaging, gaming, and IoT.
 
-In the simplest case, a web conferencing application could use a single
-relay to forward packets between users in a video conference. However a
-more typical scenario would have a delivery network made of multiple
-relays spread across several points of presence. QuicR is designed to
-make it easy to implement relays so that fail over could happen between
-relays with minimal impact to the clients and relays can redirect a
-client to a different relay.
+QuicR is pronounced something close to
+“quicker” but with more of a pirate "arrrr" at the end.
+
 
 # Contributing
 
@@ -118,7 +130,7 @@ https://github.com/fluffy/draft-jennings-moq-arch ```
   application and is responsible for establishing trust between clients
   and relays. Origin servers can implement other QuicR functions.
 
-# QuicR relationship to existing streaming standards
+# Advantages of QuicR
 
 As its evident, QuicR and its architecture uses similar concepts and
 delivery mechanisms to those used by streaming standards such as HLS and
@@ -179,44 +191,19 @@ conferencing and gaming.
   part of the metadata that is accessible to the delivery network for
   further processing as appropriate.
 
-# Architecture
+# QuicR architecture
 
-## Components
+A typical media delivery achitecture based on QuicR enables
+delivery tree allowing :
 
-### QuicR Delivery Network Architecture via Origin and No Relay functions
-!--
-~~~ascii-art
-                                           Publisher: quicr://twitch.com/channel-1/video/hi-res/...
-                                           Publisher: quicr://twitch.com/channel-1/video/med-res/...
-                                           ...                        *
-               ┌──────────────────────────────────────────────────────*──────────────────────┐
-               │             Subscribe                                *                      │
-               │ quicr://<ingest-server>/streams/*        ┌───────────*─────────────────┐    │
-               │       ┌───────────────────────┐          │                             │    │
-               │       │     ingest-server     │          │   distribution-server       │    │
-          ┌────┤       │      [Subscriber]     ├──────────▶      [Publisher]            │    │
-          │    │       └───────────────────────┘          └──────┬──────────────────────┘    │
-          │    └─────────────────────────────────────────────────┼───────────────┼───────────┘
-          │                                                                      │
-  Publish:                                  Pub:
-  quicr://<ingest-server>                   quicr://twitch.com/channel-1/      Sub:quicr://twitch.com/ch
-  /stream123                                video/hi-res/group1/obj12          annel-1/video/hi-res/*
-                                            Pub: quicr://...
-          │                                 Pub: quicr://...                     │
-          │                                                                      │
-          │                                                      │               │
-          │                                                      ▼               │
-┌───────────────────┐                                       ┌───────────────────────────────┐
-│┌────────────────┐ │                                       │         Subscriber            │
-││    Streamer    │ │                                       │                               │
-││  [Publisher]   │ │                                       └───────────────────────────────┘
-│└────────────────┘ │
-└───────────────────┘
+- Publishing entities to publish named data
+- Subscribers to express interest in the named objects
+- Delivery tree made up of Relay(s) to allow the flow of the named objects.
 
-~~~
-Figure: Pub/Sub via Origin (No relay)
-!--
+In the following subsections, 2 common QuicR delivery tree archiectures are 
+non-normatively discussed 
 
+## QuicR Delivery Network Architecture via Origin as the only Relay Function.
 
 !--
 ~~~ascii-art
@@ -236,66 +223,7 @@ Figure: Pub/Sub via Origin (No relay)
 ~~~
 !--
 
-### QuicR Delivery Network Architecture via Relay delivery network
-
-!--
-~~~ascii-art
- 
-                                       ┌───────────────────────┐
-                                       │                       │
-                                       │    Origin [Relay]     │
-                                       │ [quicr://meeting.com/ │
-                                    ┌─▶│     meeting123..]     │◀──────────┐
-                                    │  │                       │           │
-                                    │  │                       │           │
-             pub-1: hi-res  video   │  └───────────────────┬───┘           │     sub:
-             pub-2: low-res video   │                                      │ alice/video/*
-                                    │            pub: alice, high-res      │
-                                    │            pub: alice, low-res       │
-                                    │                                      │
-                                    │                      │               │
-                      ┌─────────────┴──────────┐           │    ┌─────────────────┐             sub:
-                      │                        │           │    │                 │◀─────── alice/video/*
-             ┌───────▶│         Relay-B        │           └───▶│    Relay-B      │
-             │        │                        │                │                 ├────┐          │
-             │        └────────────────────────┘                └─┬─────────▲─────┘    │          │
-             │                     │         ▲                    │                    │          │
- pub-1: hi-re│  video              │                                  sub:alice/v                 │
- pub-2: low-r│s video                     sub: alice,   pub: alice,      deo/*     pub: alice,    │
-             │            pub: alice,    hi-res video    high-res,                  high-res,     │
-             │           hi-res video                     low-res                    low-res      │
-             │                               │                              │                     │
-             │                     │         │                    │         │          │          │
-             │                     ▼         │                    ▼         │          ▼          │
-      .─────────────.             .──────────┴──.             .─────────────.         .─────────────.
-   ,─'               '─.       ,─'               '─.       ,─'               '─.   ,─'               '─.
-  (        Alice        )     (         Bob         )     (        Carl         ) (        Derek        )
-   `──.             _.─'       `──.             _.─'       `──.             _.─'   `──.             _.─'
-       `───────────'               `───────────'               `───────────'           `───────────'
-
-~~~
-Figure: Pub/Sub with relay delivery network
-!--
-
-!--
-~~~ascii-art 
-             +------+           
-        +--->|RelayO----+       
-        |    +------+   |       
-       2|              4|       
-        |               v       
-     +------+       +------+    
-  +->|RelayA|       |RelayB|    
-  |  +------+       +------+    
-  |       |         |      |    
- 1|      3|        5|     6|    
-  |       V         V      V    
-+-----+  +---+   +----+  +-----+
-|Alice|  |Bob|   |Carl|  |Derek|
-+-----+  +---+   +----+  +-----+
-~~~
-!--
-
+## QuicR Delivery Network Architecture via Relay delivery network
 
 !--
 ~~~ascii-art 
@@ -369,19 +297,11 @@ The names of each object in QuicR is composed of the following components:
 
 !--
 ~~~ascii-art
-   48 bits          48 bits            32 bits
-┌─────────────┬────────────────────┬───────────────┐
-│     Domain  │    Application     │ Object Group  │
-│   Component │     Component      │   Component   │
-└─────────────┴────────────────────┴──────┬────────┘
-                               ┌──────────┤
-                               │          └──────────┐
-                               ▼                     ▼
-                     ┌───────────────────┐ ┌───────────────────┐
-                     │       Group       │ │       Object      │
-                     │     Identifier    │ │     Identifier    │
-                     └───────────────────┘ └───────────────────┘
-                            16 bits               16 bits
+┌─────────────┬───────────────┬───────────────┬─────────────┐
+│ Domain      │ Appication    │ GroupID       │ ObjectID    │
+│ Component   │ Component     │ Component     │ Component   │
+└─────────────┴───────────────┴───────────────┴─────────────┘
+    48 bits        48 bits         16 bits       16 bits
 ~~~
 Figure: QuicR Name
 !--
