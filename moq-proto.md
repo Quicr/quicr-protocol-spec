@@ -16,8 +16,7 @@ natural latency the network causes.
 The architecture for this specificaiton is outlines in
 draft-jennings-moq-arch and this specification does not make sense
 without first reading that.
-Client
-endpoints publish and subscribe to named objects that is sent to, and
+Client endpoints publish and subscribe to named objects that is sent to, and
 received from, relays that forms an overlay delivery network similar to
 what CDN provides today.
 
@@ -109,7 +108,7 @@ are encapsulated in QUIC packets.
 `A> All the integer fields are variable length encoded`
 ```
 PUBLISH {
-  ORIGIN             (String) 
+  ORIGIN            (String) 
   NAME              (Number128)
   FLAGS             (Byte)
   FRAGMENT_ID       (Number16)
@@ -120,8 +119,6 @@ PUBLISH {
 
 Flags := Reserved (3) | IsDiscardable (1) | Priority (3)
 ```
-
-CJ - I think we need the origin string here 
 
 ## Subscribe API and SUBSCRIBE Message
 
@@ -187,8 +184,8 @@ WAIT_UP: Wait until an object that has a objectId that matches the name is
 received then start sending any objects that match the name.
 
 MOST_RECENT: Deliver any new objects it receives and in addition send
-the most recent 
-object it has received that is in the same group that matches the name.
+the most recent object it has received that is in the same group that 
+matches the name.
 
 
 ### Aggregating Subscriptions
@@ -206,11 +203,13 @@ given cloud server.
 The names used in `SUBSCRIBE` can be truncated by skipping the right 
 most segments of the name that is application specific, in which case it 
 will act as a wildcard subscription to all names that match the provided 
-part of the name. For example, in an web conferencing use case, the client 
-may subscribe to just the origin and ResourceID to get all the media for a 
-particular conference. 
+part of the name. The same is indicated via bitmask associated 
+with the name in `SUBSRIBE` messages. Wildcard search on Relay(s) thus
+turns into a bitmask at the appropriate bit location of the hashed name. 
 
-CJ - talk about mask ?
+For example, in an web conferencing use case, the client 
+may subscribe to just the origin and meetingID to get all the media for a 
+particular conference. 
 
 
 ## PUBLISH\_INTENT and PUBLISH\_INTENT\_OK Message
@@ -295,18 +294,14 @@ the peer about discontinued interest in a given named data.
 SUBSCRIBE_CANCEL
 {
     SUBSCRIPTION_ID (Number64)
-    NAMES           [Number128..]
     Reason       (Optional String)
 }
 ```
 Field SUBSCRIPTION_ID MUST match the equivalent field in 
 the `SUBSCRIBE` message to which this reply applies. 
-If NAMES field is empty, all the names associated with the 
-given SUBSCRIPTION_ID are understood to be cancelled.
 The Reason is an optional string provided for application
-consumption.
-
-CJ - it seems weird to need both name and sub-id 
+consumption. `SUBSCRIBE_CANCEL` message implies canceling 
+of all the subscriptions for the given SUBSCRIPTION_ID.
   
 ## Fragmentation and Reassembly
 
@@ -316,8 +311,8 @@ fragmentation and reassembly. Each fragment needs to be small enough to
 send in a single transport packet. The low order bit is also a Last 
 Fragment Flag to know the number of Fragments. The upper bits are used 
 as a fragment counter with the frist fragment starting at 1.
-
-CJ - do we need the fragment number somwhere in the on the wire stuff ?
+The `FRAGMENT_ID` with in the `PUBLISH` message identfies the individual
+fragments.
 
 # Relay Function and Relays {#relay_behavior}
 
@@ -481,26 +476,26 @@ the same via the Manifest.
       "id": "1234",
       "codec": "av1",
       "quality": "1280x720_30fps",
-      "bitrate": "1200kbps"
+      "bitrate": "1200kbps",
+      "crypto": "aes128-gcm",
       },
       {    
       "id": "5678",
       "codec": "av1",
       "quality": "3840x2160_30fps",
-      "bitrate": "4000kbps"
+      "bitrate": "4000kbps",
+      "crypto": "aes256-gcm",
       },
       {    
       "id": "9999",
       "codec": "av1",
-      "quality": "640x480_30fps"
+      "quality": "640x480_30fps",
+      "crypto": "aes128-gcm",
       },
   ]
 }
 
 ```
-
-CJ - add soemthing like   "crypot":"aes128-gcm"
-
 
 Given the above manifest, a subscriber who is capable of 4K stream
 shall subscribe to the name
@@ -520,10 +515,10 @@ enables sending the application data as QUIC streams, otherwise as QUIC Datagram
 based on the setting of `IS_RELIABLE` flag.
 
 `PUBLISH` messages per name are sent over their own QUIC Stream or as 
-QUIC DATAGRAM based on `IS_RELILABLE` setting.
-
-CJ for reliable stuff ... I would propose use the same stream for all
-the objects in the same group but different streams otherwise.
+QUIC DATAGRAM based on `IS_RELILABLE` setting. When using QUIC 
+streams, all the objects belonging to a group are sent on 
+the same QUIC Stream, whereas, different groups are sent in their
+own QUIC Streams.
 
 ## Congestion Control
 
