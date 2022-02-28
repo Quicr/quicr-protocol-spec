@@ -13,12 +13,10 @@ between what different viewers are seeing. All of these usescases
 push towards latencies that are in the order of 100ms over the 
 natural latency the network causes.
 
-draft-jennings-moq-arch outlines a unified architecture for data delivery that
-enables a wide range of realtime applications with different resiliency
-and latency needs. 
-
-As defined in draft-jennings-moq-arch, with QuicR,  client
-endpoints publish and subscribe to named objects that is sent to, and
+The architecture for this specificaiton is outlines in
+draft-jennings-moq-arch and this specification does not make sense
+without first reading that.
+Client endpoints publish and subscribe to named objects that is sent to, and
 received from, relays that forms an overlay delivery network similar to
 what CDN provides today.
 
@@ -26,7 +24,7 @@ what CDN provides today.
 
 All significant discussion of development of this protocol is in the
 GitHub issue tracker at: ```
-https://github.com/fluffy/draft-jennings-moq-arch ```
+https://github.com/fluffy/draft-jennings-moq-proto ```
 
 # Terminology
 
@@ -110,6 +108,7 @@ are encapsulated in QUIC packets.
 `A> All the integer fields are variable length encoded`
 ```
 PUBLISH {
+  ORIGIN            (String) 
   NAME              (Number128)
   FLAGS             (Byte)
   FRAGMENT_ID       (Number16)
@@ -149,15 +148,15 @@ period of 5 seconds is RECOMMENDED.
 
 ```
 SUBSCRIBE {
-  Origin             (String)  
-  SUBSCRIPTION_ID    (Number64)  
+  ORIGIN             (String) 
+  SUBSCRIPTION_ID    (Number64) 
   NAMES              [NAME..]
   INTENT             [Enumeration] 
 }
 
 NAME {
  name               [Number128]
- mask               [Number96]
+ mask               [Number7]
 }
 
 ```
@@ -180,6 +179,10 @@ objects it has received that are in the same group that matches the name.
 WAIT_UP: Wait until an object that has a objectId that matches the name is
 received then start sending any objects that match the name.
 
+MOST_RECENT: Deliver any new objects it receives and in addition send
+the most recent object it has received that is in the same group that 
+matches the name.
+
 
 ### Aggregating Subscriptions
 
@@ -196,8 +199,12 @@ given cloud server.
 The names used in `SUBSCRIBE` can be truncated by skipping the right 
 most segments of the name that is application specific, in which case it 
 will act as a wildcard subscription to all names that match the provided 
-part of the name. For example, in an web conferencing use case, the client 
-may subscribe to just the origin and ResourceID to get all the media for a 
+part of the name. The same is indicated via bitmask associated 
+with the name in `SUBSRIBE` messages. Wildcard search on Relay(s) thus
+turns into a bitmask at the appropriate bit location of the hashed name. 
+
+For example, in an web conferencing use case, the client 
+may subscribe to just the origin and meetingID to get all the media for a 
 particular conference. 
 
 
@@ -215,9 +222,9 @@ the origin server.
  
  ```
  PUBLISH_INTENT {
-  PUBLISHER_ID   (Number64]   
-  NAMES          [Number64Array]
   ORIGIN         [String]
+  PUBLISHER_ID   (Number64)
+  NAMES          [Number64Array]
  }
  ```
 
@@ -254,6 +261,7 @@ the origin server.
  the associated data.` 
 
 ## SUBSCRIBE_REPLY Message
+
 A ```SUBSCRIBE_REPLY``` provides result of the subsciptions. It lists the 
 names that were successful in subscrptions and ones that failed to do so.
 
@@ -269,6 +277,9 @@ SUBSCRIBE_REPLY
 Field SUBSCRIPTION_ID MUST match the equivalent field in 
 the `SUBSCRIBE` message to which this reply applies.
 
+CJ - I think we probably need some way for the Relay to send a redirect
+to PUB, PUB INTENT, and SUB
+
 ## SUBSCRIBE_CANCEL Message
 
 A ```SUBSCRIBE_CANCEL``` message indicates a given subscription is no 
@@ -279,17 +290,14 @@ the peer about discontinued interest in a given named data.
 SUBSCRIBE_CANCEL
 {
     SUBSCRIPTION_ID (Number64)
-    NAMES           [Number128..]
     Reason       (Optional String)
 }
 ```
 Field SUBSCRIPTION_ID MUST match the equivalent field in 
 the `SUBSCRIBE` message to which this reply applies. 
-If NAMES field is empty, all the names associated with the 
-given SUBSCRIPTION_ID are understood to be cancelled.
 The Reason is an optional string provided for application
-consumption.
-
+consumption. `SUBSCRIBE_CANCEL` message implies canceling 
+of all the subscriptions for the given SUBSCRIPTION_ID.
   
 ## Fragmentation and Reassembly
 
@@ -299,7 +307,8 @@ fragmentation and reassembly. Each fragment needs to be small enough to
 send in a single transport packet. The low order bit is also a Last 
 Fragment Flag to know the number of Fragments. The upper bits are used 
 as a fragment counter with the frist fragment starting at 1.
-
+The `FRAGMENT_ID` with in the `PUBLISH` message identfies the individual
+fragments.
 
 # Relay Function and Relays {#relay_behavior}
 
@@ -399,7 +408,7 @@ needs to be carried out:
 2. The fully assembled fragments are stored based on attrbutes
  associated with the data and cache local policies.
 
-It is upto the applications to define the right sized fragments 
+It is up to the applications to define the right sized fragments 
 as it can influence the latency of the delivery.
 
 
@@ -407,7 +416,9 @@ as it can influence the latency of the delivery.
 
 The Origin server within the QuicR architecture performs the following 
 logical roles
- 
+
+CJ - do we need and this next thing ? Lets talk about it
+
  - NamedDataIndex Server : NameDataIndex is an authorized server for a 
  given Origin and can be a logical component of the Origin server. This 
  component enables discovery, authorization and distribution of names within the 
@@ -461,18 +472,21 @@ the same via the Manifest.
       "id": "1234",
       "codec": "av1",
       "quality": "1280x720_30fps",
-      "bitrate": "1200kbps"
+      "bitrate": "1200kbps",
+      "crypto": "aes128-gcm",
       },
       {    
       "id": "5678",
       "codec": "av1",
       "quality": "3840x2160_30fps",
-      "bitrate": "4000kbps"
+      "bitrate": "4000kbps",
+      "crypto": "aes256-gcm",
       },
       {    
       "id": "9999",
       "codec": "av1",
-      "quality": "640x480_30fps"
+      "quality": "640x480_30fps",
+      "crypto": "aes128-gcm",
       },
   ]
 }
@@ -497,7 +511,10 @@ enables sending the application data as QUIC streams, otherwise as QUIC Datagram
 based on the setting of `IS_RELIABLE` flag.
 
 `PUBLISH` messages per name are sent over their own QUIC Stream or as 
-QUIC DATAGRAM based on `IS_RELILABLE` setting.
+QUIC DATAGRAM based on `IS_RELILABLE` setting. When using QUIC 
+streams, all the objects belonging to a group are sent on 
+the same QUIC Stream, whereas, different groups are sent in their
+own QUIC Streams.
 
 ## Congestion Control
 
@@ -541,10 +558,9 @@ real-time multiparty A/V conferencing applications.
 
 Objects/Data names are formed by concatenation of the domain and application 
 components. Below provides one possible way to subdivide the application 
-component portion of the data names for a conferencing scenario along with 
-their integer bit lengths when encoded as interger shortnames.
+component portion of the data names for a conferencing scenario.
 
-* ResourceID: A identifier for the context of a single group session. Is unique 
+* MeetingID: A identifier for the context of a single group session. Is unique 
 withthing scope of Origin. The is a variable length encoded 40 bit integer. 
 Example: conferences number
 
@@ -559,6 +575,10 @@ codec with multiple layers or simulcast streams each would use a
 different sourceID for each quality representation. This is a 
 variable length encoded 14 bit integer.
 
+CJ - do we need to talk about resoltuions
+
+CJ - we can probably get rid of bit lengths stuff
+
 * MediaTime: Identifies an immutable chunk of media in a stream. 
 The TAI (International Atomic Time) time in milliseconds after 
 the unix epoch when the last sample of the chunk of media was 
@@ -567,13 +587,13 @@ recorded. When formatted as a string, it should be formatted as
 encoded 44 bit integer.Example: For an audio stream, this could be 
 the media from one frame of the codec representing 20 ms of audio.
 
+CJ - I think we need to talk about video group of frames and object id
+stuff. We could probably just get rid of Media time
+
 A conforming name is formatted as URLs like:
 
 ``` quicr://domain:port/ResourceID/SenderID/SourceID/MediaTime/ ```
 
-and ShortNames are formed from the cominaton fo the ResrouceID, 
-SenderID, SourceID, MediaTime. Note the Origin is not in the 
-ShortName and is assumed from the context in which the ShortName is used.
 
 ### Manifest
 
@@ -599,19 +619,6 @@ Participants who wish to receive media from a given meeting in a web conference
 will do so by subscribing to the meeting's manifest. The manifest will list 
 the name of the active publishers. 
 
-### API Considerations
-
-QuicR client participating in a realtime conference has few options at the 
-API level to choose when published data :
-
-* When sending video IDR data, ```IS_SYNC_POINT``` is set to true.
-* When sending data for a layer video codec, ```IS_RELIABLE``` option can 
-be set to true for certain layers. Also the priority levels between the 
-layer may be adjusted to report relative importance.
-* Selectively retranmissions can be enbaled based on the importance of 
-the data.
-*  todo add more flows
-
 ### Example 
 
 Below picture depicts a simplified QuicR Publish/Subscribe protocol flow 
@@ -633,32 +640,34 @@ forwaded to Relay. the relay will in turn forward the same to Alice and Bob
 based on their subscriptions.
 
 Here is another scenario, where Alice has 2 media sources (mic, camera) and 
-is able to send 3 simulast streams for video and audio encoded via 2 different 
+is able to send 2 simulast streams for video (corresponding to 2 
+quality lelves) and audio encoded via 2 different 
 codecs, might have different sourceIDs as listed below
+
+
 
 ```
 Source       --> SourceID
 ------------------------
-mic_codec_1  --> 1111
-mic_codec_2  --> 2222
-vid_simul_1  --> 3333
-vid_simul_2  --> 4444
+mic_codec_1  --> audio_opus
+mic_codec_2  --> audio_lyra
+vid_simul_1  --> video_hi
+vid_simul_2  --> video_low
 
 Alice's SenderID -> Alice and she is joining meeting with id 
 meeting123
 
 Names that Alice can publish includes:
 
-quicr://acme.meetings.com/meeting123/Alice/1111/...
-quicr://acme.meetings.com/meeting123/Alice/2222/...
-quicr://acme.meetings.com/meeting123/Alice/3333/...
-quicr://acme.meetings.com/meeting123/Alice/4444/...
+quicr://acme.meetings.com/meeting123/Alice/audio_opus/...
+quicr://acme.meetings.com/meeting123/Alice/audio_lyra/...
+quicr://acme.meetings.com/meeting123/Alice/video_hi/...
+quicr://acme.meetings.com/meeting123/Alice/video_low/...
 
 ```
 
 Manifest encoded as json objects might capture the information as below. 
 [This encoded is for information purposes only.]
-TODO - Do we need a common manifest format ???
 
 ```
 {
@@ -671,11 +680,11 @@ TODO - Do we need a common manifest format ???
                 "type" : "audio",
                 "streams": [
                     {
-                        "id": "1111",
+                        "id": "audio_opus,
                         "codec": "opus",
                         "quality": "48khz",
                     }, {
-                        "id" : "2222",
+                        "id" : "audio_lyra",
                         ....
                     }
                 ]
@@ -683,12 +692,12 @@ TODO - Do we need a common manifest format ???
             "type": "video",
             "streams": [
                 {
-                    "id": "3333",
+                    "id": "video_hi",
                     "codec:" : "av1",
                     "quality" : "1920x720_60fps"
                 },
                 {
-                    "id": "4444",
+                    "id": "video_lo",
                     "codec:" : "av1",
                     "quality" : "640x480_30fps"
                 }
@@ -701,7 +710,7 @@ TODO - Do we need a common manifest format ???
 ```
 
 With the names as above, any subscriber retrieving the manifest has the 
-necessary information to send ```SUBSCRIBE``` for the named data of interest. 
+necessary information to send `SUBSCRIBE` for the named data of interest. 
 The same happens when the manifest is updated once the session is in progress.
 
 
@@ -732,24 +741,32 @@ end users per channel.
 One can model naming for PTT applications very similar to the design used 
 for "Realtime conferencing applications".
 
-A conforming name is formatted as URLs like:
-
-``` quicr://domain:port/ResourceID/SenderID/SourceID/MediaTime/ ```
 
 In the case of PTT, the following mappings can be considered for the 
 application subcomponents
 
-* ResourceID - Each PTT channel represents its own high level resource
+* StoreID - Identifier for store at various location.
+* ChannelID - Each PTT channel represents its own high level resource
 * SenderID   - Authenticated user's Id who is actively checked in a given 
 frontline workspace (ex: retail store)
-* MediaTime  - Same as in the case of "Realtime Conferencing Application"
+
+With above division of `Application Component`, a sample QuicR named
+object might have following form
+
+`quicr://wallmart.com/store22/ch3/sender5/groupID/objectID`
+
+A `SUBSCRIBE` for all the PTT messages sent over channel 3, could
+be represented as 
+
+`quicr://wallmart.com/store22/ch3/*`
+
 
 ### Manifest
 
 For PTT application, a manifest describes various active PTT channels as 
-the main resource.
-Subsribers who tune into channels typically get the names from the manifest 
-to do so. Publshers publish their media to channels that they are authorized to. 
+the main resource. Subsribers who tune into channels typically get the names 
+from the manifest to do so. Publshers publish their media to channels that 
+they are authorized to. 
 
 ### Example
 
@@ -780,7 +797,8 @@ Manifest encoded as json objects might capture the information as below.
 
 ```
 {
-    "origin": "retail19012.sjc.acme.com"
+    "origin": "walmart.com",
+    "sto
     "channel": [
         {
             "name": "bakery",
@@ -794,7 +812,7 @@ Manifest encoded as json objects might capture the information as below.
 }
 
 ```
-Alice and Bob shall send ```SUBSCRIBE``` to channel Bakery and Carl does 
+Alice and Bob shall send `SUBSCRIBE` to channel Bakery and Carl does 
 the same for channel Gardening.
 
 ## Low Latency Streaming Applications
@@ -805,9 +823,9 @@ streams of different qualities to a central server. Media Distribution
 downstream is customized (via quality/rate adapation) per consumer by 
 the central server.
 
-One can model ingestion as sending ```PUBLISH``` mesages and the 
+One can model ingestion as sending `PUBLISH` mesages and the 
 associated sources as publishers. Similarly, the consumers/end 
-clients of the streaming media ```SUBSCRIBE``` to the media elements 
+clients of the streaming media `SUBSCRIBE` to the media elements 
 whose names are defined in the manifest. Manifest describes the 
 name and qualities associated with media being published. The central 
 severs (Origin) themselves act as publisher for producing streams 
@@ -924,10 +942,8 @@ the ResourceID. This allows for TOR like onion routing systems
 help preserve privacy of what participants are communicating.
 
 
-
-
-
 # TODO
+
 1. Define trust establishment flows between QuicR Endpoints, 
 Cloud Relays and the Origin Server. Also add security toke to 
 the messages.
