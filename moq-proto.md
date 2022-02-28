@@ -560,11 +560,9 @@ Objects/Data names are formed by concatenation of the domain and application
 components. Below provides one possible way to subdivide the application 
 component portion of the data names for a conferencing scenario.
 
-* ResourceID: A identifier for the context of a single group session. Is unique 
+* MeetingID: A identifier for the context of a single group session. Is unique 
 withthing scope of Origin. The is a variable length encoded 40 bit integer. 
 Example: conferences number
-
-CJ - perhaps meetingID would be better that resoruce id
 
 * SenderID: Identifies a single endpoint client within that ResourceID that 
 publishes data. This is a variable length encoded 30 bit integer. 
@@ -620,21 +618,6 @@ or so on.
 Participants who wish to receive media from a given meeting in a web conference 
 will do so by subscribing to the meeting's manifest. The manifest will list 
 the name of the active publishers. 
-
-### API Considerations
-
-CJ - could we get rid of this seciton ?
-
-QuicR client participating in a realtime conference has few options at the 
-API level to choose when published data :
-
-* When sending video IDR data, ```IS_SYNC_POINT``` is set to true.
-* When sending data for a layer video codec, ```IS_RELIABLE``` option can 
-be set to true for certain layers. Also the priority levels between the 
-layer may be adjusted to report relative importance.
-* Selectively retranmissions can be enbaled based on the importance of 
-the data.
-*  todo add more flows
 
 ### Example 
 
@@ -758,31 +741,32 @@ end users per channel.
 One can model naming for PTT applications very similar to the design used 
 for "Realtime conferencing applications".
 
-A conforming name is formatted as URLs like:
-
-``` quicr://domain:port/ResourceID/SenderID/SourceID/MediaTime/ ```
 
 In the case of PTT, the following mappings can be considered for the 
 application subcomponents
 
-* ResourceID - Each PTT channel represents its own high level resource
+* StoreID - Identifier for store at various location.
+* ChannelID - Each PTT channel represents its own high level resource
 * SenderID   - Authenticated user's Id who is actively checked in a given 
 frontline workspace (ex: retail store)
-* MediaTime  - Same as in the case of "Realtime Conferencing Application"
 
-CJ - seems like we need names more like
-wallmart.com/store22/ch3/sender5/group/message
+With above division of `Application Component`, a sample QuicR named
+object might have following form
 
-CJ - THis is a good example where we might want to wilder car at the
-ch3/* level ...
+`quicr://wallmart.com/store22/ch3/sender5/groupID/objectID`
+
+A `SUBSCRIBE` for all the PTT messages sent over channel 3, could
+be represented as 
+
+`quicr://wallmart.com/store22/ch3/*`
 
 
 ### Manifest
 
 For PTT application, a manifest describes various active PTT channels as 
-the main resource.
-Subsribers who tune into channels typically get the names from the manifest 
-to do so. Publshers publish their media to channels that they are authorized to. 
+the main resource. Subsribers who tune into channels typically get the names 
+from the manifest to do so. Publshers publish their media to channels that 
+they are authorized to. 
 
 ### Example
 
@@ -813,7 +797,8 @@ Manifest encoded as json objects might capture the information as below.
 
 ```
 {
-    "origin": "retail19012.sjc.acme.com"
+    "origin": "walmart.com",
+    "sto
     "channel": [
         {
             "name": "bakery",
@@ -827,7 +812,7 @@ Manifest encoded as json objects might capture the information as below.
 }
 
 ```
-Alice and Bob shall send ```SUBSCRIBE``` to channel Bakery and Carl does 
+Alice and Bob shall send `SUBSCRIBE` to channel Bakery and Carl does 
 the same for channel Gardening.
 
 ## Low Latency Streaming Applications
@@ -838,9 +823,9 @@ streams of different qualities to a central server. Media Distribution
 downstream is customized (via quality/rate adapation) per consumer by 
 the central server.
 
-One can model ingestion as sending ```PUBLISH``` mesages and the 
+One can model ingestion as sending `PUBLISH` mesages and the 
 associated sources as publishers. Similarly, the consumers/end 
-clients of the streaming media ```SUBSCRIBE``` to the media elements 
+clients of the streaming media `SUBSCRIBE` to the media elements 
 whose names are defined in the manifest. Manifest describes the 
 name and qualities associated with media being published. The central 
 severs (Origin) themselves act as publisher for producing streams 
