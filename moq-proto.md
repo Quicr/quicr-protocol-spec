@@ -13,11 +13,10 @@ between what different viewers are seeing. All of these usescases
 push towards latencies that are in the order of 100ms over the 
 natural latency the network causes.
 
-draft-jennings-moq-arch outlines a unified architecture for data delivery that
-enables a wide range of realtime applications with different resiliency
-and latency needs. 
-
-As defined in draft-jennings-moq-arch, with QuicR,  client
+The architecture for this specificaiton is outlines in
+draft-jennings-moq-arch and this specification does not make sense
+without first reading that.
+Client
 endpoints publish and subscribe to named objects that is sent to, and
 received from, relays that forms an overlay delivery network similar to
 what CDN provides today.
@@ -26,7 +25,7 @@ what CDN provides today.
 
 All significant discussion of development of this protocol is in the
 GitHub issue tracker at: ```
-https://github.com/fluffy/draft-jennings-moq-arch ```
+https://github.com/fluffy/draft-jennings-moq-proto ```
 
 # Terminology
 
@@ -110,6 +109,7 @@ are encapsulated in QUIC packets.
 `A> All the integer fields are variable length encoded`
 ```
 PUBLISH {
+  ORIGIN             (String) 
   NAME              (Number128)
   FLAGS             (Byte)
   FRAGMENT_ID       (Number16)
@@ -120,6 +120,8 @@ PUBLISH {
 
 Flags := Reserved (3) | IsDiscardable (1) | Priority (3)
 ```
+
+CJ - I think we need the origin string here 
 
 ## Subscribe API and SUBSCRIBE Message
 
@@ -149,18 +151,22 @@ period of 5 seconds is RECOMMENDED.
 
 ```
 SUBSCRIBE {
-  Origin             (String)  
-  SUBSCRIPTION_ID    (Number64)  
+  ORIGIN             (String) 
+  SUBSCRIPTION_ID    (Number64) 
   NAMES              [NAME..]
   INTENT             [Enumeration] 
 }
 
 NAME {
  name               [Number128]
- mask               [Number96]
+ mask               [Number7]
 }
 
 ```
+
+CJ - The maks can just be the number of bits in the name that are
+wildcarded. For example, if the right most 16 bits of the name are
+wildcarded, then the mask would have a value of 16. 
 
 The `ORIGIN` field identifies the Origin server for which this 
 subscrption is targetted. `SUBSCRIPTION_ID` is a randomly chosen
@@ -179,6 +185,10 @@ objects it has received that are in the same group that matches the name.
 
 WAIT_UP: Wait until an object that has a objectId that matches the name is
 received then start sending any objects that match the name.
+
+MOST_RECENT: Deliver any new objects it receives and in addition send
+the most recent 
+object it has received that is in the same group that matches the name.
 
 
 ### Aggregating Subscriptions
@@ -200,6 +210,8 @@ part of the name. For example, in an web conferencing use case, the client
 may subscribe to just the origin and ResourceID to get all the media for a 
 particular conference. 
 
+CJ - talk about mask ?
+
 
 ## PUBLISH\_INTENT and PUBLISH\_INTENT\_OK Message
 
@@ -215,9 +227,9 @@ the origin server.
  
  ```
  PUBLISH_INTENT {
-  PUBLISHER_ID   (Number64]   
-  NAMES          [Number64Array]
   ORIGIN         [String]
+  PUBLISHER_ID   (Number64)
+  NAMES          [Number64Array]
  }
  ```
 
@@ -254,6 +266,7 @@ the origin server.
  the associated data.` 
 
 ## SUBSCRIBE_REPLY Message
+
 A ```SUBSCRIBE_REPLY``` provides result of the subsciptions. It lists the 
 names that were successful in subscrptions and ones that failed to do so.
 
@@ -268,6 +281,9 @@ SUBSCRIBE_REPLY
 
 Field SUBSCRIPTION_ID MUST match the equivalent field in 
 the `SUBSCRIBE` message to which this reply applies.
+
+CJ - I think we probably need some way for the Relay to send a redirect
+to PUB, PUB INTENT, and SUB
 
 ## SUBSCRIBE_CANCEL Message
 
@@ -290,6 +306,7 @@ given SUBSCRIPTION_ID are understood to be cancelled.
 The Reason is an optional string provided for application
 consumption.
 
+CJ - it seems weird to need both name and sub-id 
   
 ## Fragmentation and Reassembly
 
@@ -300,6 +317,7 @@ send in a single transport packet. The low order bit is also a Last
 Fragment Flag to know the number of Fragments. The upper bits are used 
 as a fragment counter with the frist fragment starting at 1.
 
+CJ - do we need the fragment number somwhere in the on the wire stuff ?
 
 # Relay Function and Relays {#relay_behavior}
 
@@ -399,7 +417,7 @@ needs to be carried out:
 2. The fully assembled fragments are stored based on attrbutes
  associated with the data and cache local policies.
 
-It is upto the applications to define the right sized fragments 
+It is up to the applications to define the right sized fragments 
 as it can influence the latency of the delivery.
 
 
@@ -407,7 +425,9 @@ as it can influence the latency of the delivery.
 
 The Origin server within the QuicR architecture performs the following 
 logical roles
- 
+
+CJ - do we need and this next thing ? Lets talk about it
+
  - NamedDataIndex Server : NameDataIndex is an authorized server for a 
  given Origin and can be a logical component of the Origin server. This 
  component enables discovery, authorization and distribution of names within the 
@@ -479,6 +499,9 @@ the same via the Manifest.
 
 ```
 
+CJ - add soemthing like   "crypot":"aes128-gcm"
+
+
 Given the above manifest, a subscriber who is capable of 4K stream
 shall subscribe to the name
 
@@ -498,6 +521,9 @@ based on the setting of `IS_RELIABLE` flag.
 
 `PUBLISH` messages per name are sent over their own QUIC Stream or as 
 QUIC DATAGRAM based on `IS_RELILABLE` setting.
+
+CJ for reliable stuff ... I would propose use the same stream for all
+the objects in the same group but different streams otherwise.
 
 ## Congestion Control
 
@@ -548,6 +574,8 @@ their integer bit lengths when encoded as interger shortnames.
 withthing scope of Origin. The is a variable length encoded 40 bit integer. 
 Example: conferences number
 
+CJ - perhaps meetingID would be better that resoruce id
+
 * SenderID: Identifies a single endpoint client within that ResourceID that 
 publishes data. This is a variable length encoded 30 bit integer. 
 Example: Unique ID for user logged into the origin application.
@@ -559,6 +587,10 @@ codec with multiple layers or simulcast streams each would use a
 different sourceID for each quality representation. This is a 
 variable length encoded 14 bit integer.
 
+CJ - do we need to talk about resoltuions
+
+CJ - we can probably get rid of bit lengths stuff
+
 * MediaTime: Identifies an immutable chunk of media in a stream. 
 The TAI (International Atomic Time) time in milliseconds after 
 the unix epoch when the last sample of the chunk of media was 
@@ -567,6 +599,9 @@ recorded. When formatted as a string, it should be formatted as
 encoded 44 bit integer.Example: For an audio stream, this could be 
 the media from one frame of the codec representing 20 ms of audio.
 
+CJ - I think we need to talk about video group of frames and object id
+stuff. We could probably just get rid of Media time
+
 A conforming name is formatted as URLs like:
 
 ``` quicr://domain:port/ResourceID/SenderID/SourceID/MediaTime/ ```
@@ -574,6 +609,8 @@ A conforming name is formatted as URLs like:
 and ShortNames are formed from the cominaton fo the ResrouceID, 
 SenderID, SourceID, MediaTime. Note the Origin is not in the 
 ShortName and is assumed from the context in which the ShortName is used.
+
+CJ get rid of short name stuff
 
 ### Manifest
 
@@ -600,6 +637,8 @@ will do so by subscribing to the meeting's manifest. The manifest will list
 the name of the active publishers. 
 
 ### API Considerations
+
+CJ - could we get rid of this seciton ?
 
 QuicR client participating in a realtime conference has few options at the 
 API level to choose when published data :
@@ -635,6 +674,10 @@ based on their subscriptions.
 Here is another scenario, where Alice has 2 media sources (mic, camera) and 
 is able to send 3 simulast streams for video and audio encoded via 2 different 
 codecs, might have different sourceIDs as listed below
+
+CJ - I think the 1111 could be move to like audio, or video-low,
+video-high
+
 
 ```
 Source       --> SourceID
@@ -743,6 +786,13 @@ application subcomponents
 * SenderID   - Authenticated user's Id who is actively checked in a given 
 frontline workspace (ex: retail store)
 * MediaTime  - Same as in the case of "Realtime Conferencing Application"
+
+CJ - seems like we need names more like
+wallmart.com/store22/ch3/sender5/group/message
+
+CJ - THis is a good example where we might want to wilder car at the
+ch3/* level ...
+
 
 ### Manifest
 
@@ -924,10 +974,8 @@ the ResourceID. This allows for TOR like onion routing systems
 help preserve privacy of what participants are communicating.
 
 
-
-
-
 # TODO
+
 1. Define trust establishment flows between QuicR Endpoints, 
 Cloud Relays and the Origin Server. Also add security toke to 
 the messages.
