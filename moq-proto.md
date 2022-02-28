@@ -161,10 +161,6 @@ NAME {
 
 ```
 
-CJ - The maks can just be the number of bits in the name that are
-wildcarded. For example, if the right most 16 bits of the name are
-wildcarded, then the mask would have a value of 16. 
-
 The `ORIGIN` field identifies the Origin server for which this 
 subscrption is targetted. `SUBSCRIPTION_ID` is a randomly chosen
 to identify the subscription by a given client and is
@@ -562,8 +558,7 @@ real-time multiparty A/V conferencing applications.
 
 Objects/Data names are formed by concatenation of the domain and application 
 components. Below provides one possible way to subdivide the application 
-component portion of the data names for a conferencing scenario along with 
-their integer bit lengths when encoded as interger shortnames.
+component portion of the data names for a conferencing scenario.
 
 * ResourceID: A identifier for the context of a single group session. Is unique 
 withthing scope of Origin. The is a variable length encoded 40 bit integer. 
@@ -601,11 +596,6 @@ A conforming name is formatted as URLs like:
 
 ``` quicr://domain:port/ResourceID/SenderID/SourceID/MediaTime/ ```
 
-and ShortNames are formed from the cominaton fo the ResrouceID, 
-SenderID, SourceID, MediaTime. Note the Origin is not in the 
-ShortName and is assumed from the context in which the ShortName is used.
-
-CJ get rid of short name stuff
 
 ### Manifest
 
@@ -667,36 +657,34 @@ forwaded to Relay. the relay will in turn forward the same to Alice and Bob
 based on their subscriptions.
 
 Here is another scenario, where Alice has 2 media sources (mic, camera) and 
-is able to send 3 simulast streams for video and audio encoded via 2 different 
+is able to send 2 simulast streams for video (corresponding to 2 
+quality lelves) and audio encoded via 2 different 
 codecs, might have different sourceIDs as listed below
 
-CJ - I think the 1111 could be move to like audio, or video-low,
-video-high
 
 
 ```
 Source       --> SourceID
 ------------------------
-mic_codec_1  --> 1111
-mic_codec_2  --> 2222
-vid_simul_1  --> 3333
-vid_simul_2  --> 4444
+mic_codec_1  --> audio_opus
+mic_codec_2  --> audio_lyra
+vid_simul_1  --> video_hi
+vid_simul_2  --> video_low
 
 Alice's SenderID -> Alice and she is joining meeting with id 
 meeting123
 
 Names that Alice can publish includes:
 
-quicr://acme.meetings.com/meeting123/Alice/1111/...
-quicr://acme.meetings.com/meeting123/Alice/2222/...
-quicr://acme.meetings.com/meeting123/Alice/3333/...
-quicr://acme.meetings.com/meeting123/Alice/4444/...
+quicr://acme.meetings.com/meeting123/Alice/audio_opus/...
+quicr://acme.meetings.com/meeting123/Alice/audio_lyra/...
+quicr://acme.meetings.com/meeting123/Alice/video_hi/...
+quicr://acme.meetings.com/meeting123/Alice/video_low/...
 
 ```
 
 Manifest encoded as json objects might capture the information as below. 
 [This encoded is for information purposes only.]
-TODO - Do we need a common manifest format ???
 
 ```
 {
@@ -709,11 +697,11 @@ TODO - Do we need a common manifest format ???
                 "type" : "audio",
                 "streams": [
                     {
-                        "id": "1111",
+                        "id": "audio_opus,
                         "codec": "opus",
                         "quality": "48khz",
                     }, {
-                        "id" : "2222",
+                        "id" : "audio_lyra",
                         ....
                     }
                 ]
@@ -721,12 +709,12 @@ TODO - Do we need a common manifest format ???
             "type": "video",
             "streams": [
                 {
-                    "id": "3333",
+                    "id": "video_hi",
                     "codec:" : "av1",
                     "quality" : "1920x720_60fps"
                 },
                 {
-                    "id": "4444",
+                    "id": "video_lo",
                     "codec:" : "av1",
                     "quality" : "640x480_30fps"
                 }
@@ -739,7 +727,7 @@ TODO - Do we need a common manifest format ???
 ```
 
 With the names as above, any subscriber retrieving the manifest has the 
-necessary information to send ```SUBSCRIBE``` for the named data of interest. 
+necessary information to send `SUBSCRIBE` for the named data of interest. 
 The same happens when the manifest is updated once the session is in progress.
 
 
