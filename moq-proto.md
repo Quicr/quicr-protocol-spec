@@ -556,43 +556,32 @@ real-time multiparty A/V conferencing applications.
 
 ### Naming
 
-Objects/Data names are formed by concatenation of the domain and application 
-components. Below provides one possible way to subdivide the application 
-component portion of the data names for a conferencing scenario.
+Below provides one possible way to subdivide the application 
+component portion for a conferencing scenario.
 
 * MeetingID: A identifier for the context of a single group session. Is unique 
-withthing scope of Origin. The is a variable length encoded 40 bit integer. 
-Example: conferences number
+withthing scope of Origin.
 
-* SenderID: Identifies a single endpoint client within that ResourceID that 
-publishes data. This is a variable length encoded 30 bit integer. 
-Example: Unique ID for user logged into the origin application.
+* SenderID: Identifies a single endpoint client within that MeetingID that 
+publishes data.
 
 * SourceID: Identifies a stream of media or content from that Sender. 
 Example: A client that was sending media from a camera, a mic, and 
 screen share might use a different sourceID for each one. A scalable 
 codec with multiple layers or simulcast streams each would use a 
-different sourceID for each quality representation. This is a 
-variable length encoded 14 bit integer.
+different sourceID for each quality representation. 
 
-CJ - do we need to talk about resoltuions
+* QualityID: Identifies media quality level - hi/low/medium
 
-CJ - we can probably get rid of bit lengths stuff
-
-* MediaTime: Identifies an immutable chunk of media in a stream. 
-The TAI (International Atomic Time) time in milliseconds after 
-the unix epoch when the last sample of the chunk of media was 
-recorded. When formatted as a string, it should be formatted as 
-1990-12-31T23-59.601Z with leading zeros. The is a variable length 
-encoded 44 bit integer.Example: For an audio stream, this could be 
-the media from one frame of the codec representing 20 ms of audio.
-
-CJ - I think we need to talk about video group of frames and object id
-stuff. We could probably just get rid of Media time
+For A/V conference, the encoded media frames are formed into 
+group of objects, where each group defines an independent 
+decodeable object set. In case of video, each group 
+comprises of objects on I-Frame boundaries, for audio a group
+would map to an encoded audio sample for codecs used today.
 
 A conforming name is formatted as URLs like:
 
-``` quicr://domain:port/ResourceID/SenderID/SourceID/MediaTime/ ```
+`quicr://domain:port/MeetingID/SenderID/SourceID/QualityID/Group/Object `
 
 
 ### Manifest
@@ -607,9 +596,7 @@ that describes the names, qualities and other information that aid in
 carrying out media delivery with QuicR protocol. This would for example 
 setup unique SourceID sub-part of the application component for each media 
 source or quality layers or a combination thereof. Similarly the SenderID 
-may get mapped from a roster equivalent for the meetng. Also to note, 
-for a given meeting, the static sub-part of the application component is 
-set to the ResourceID that represents a identifier for that meeting.
+may get mapped from a roster equivalent for the meeting.
 
 A manifest may get updated several times during a session - either due to 
 capabilities updates from existing participants or new participants joinings 
@@ -671,13 +658,14 @@ Manifest encoded as json objects might capture the information as below.
 
 ```
 {
-    "origin": "acme.meetings.com"
+    "origin": "meetings.com"
     "meeting": "meeting123",
     publisher {
         id: "Alice",
         source: [
             {
                 "type" : "audio",
+                "sourceId": "alice-mic",
                 "streams": [
                     {
                         "id": "audio_opus,
@@ -690,6 +678,7 @@ Manifest encoded as json objects might capture the information as below.
                 ]
             }, {
             "type": "video",
+            "sourceId": "alice-cam",
             "streams": [
                 {
                     "id": "video_hi",
@@ -713,9 +702,12 @@ With the names as above, any subscriber retrieving the manifest has the
 necessary information to send `SUBSCRIBE` for the named data of interest. 
 The same happens when the manifest is updated once the session is in progress.
 
+A sample subscribe for lyra audio and low-res video from Alice would 
+have the form:
 
-`A>The details on security/trust relationship established between the endpoints,
-the relay and the Origin server is ignored from the depiction for simplicity purposes.`
+`quicr://meetings.com/meeting123/alice/audio/alice-mic/audio_lyra/*`
+
+`quicr://meetings.com/meeting123/alice/video/alice-cam/video_lo/*`
 
 
 ## Push To Talk Media Delivery Application
@@ -738,28 +730,31 @@ end users per channel.
 
 ### Naming
 
-One can model naming for PTT applications very similar to the design used 
-for "Realtime conferencing applications".
+In the case of PTT, the following mappings can be one way to defined 
+the application subcomponents.
 
-
-In the case of PTT, the following mappings can be considered for the 
-application subcomponents
-
-* StoreID - Identifier for store at various location.
+* StoreID - Identifier for store at various locations.
 * ChannelID - Each PTT channel represents its own high level resource
-* SenderID   - Authenticated user's Id who is actively checked in a given 
-frontline workspace (ex: retail store)
+* SenderID   - Authenticated user's Id who is actively checkedin into a
+frontline workplace (ex: a store).
 
 With above division of `Application Component`, a sample QuicR named
 object might have following form
 
-`quicr://wallmart.com/store22/ch3/sender5/groupID/objectID`
+`quicr://wallmart.com/store22/ch3/alice/groupID/objectID`
+
+In the above example, StoreID is store22, with ChannelID being channel 3 
+and corresponds to user, alice. The group of objects in this case
+map to the QuicR audio objects for audio delivery.
 
 A `SUBSCRIBE` for all the PTT messages sent over channel 3, could
 be represented as 
 
 `quicr://wallmart.com/store22/ch3/*`
 
+This will trigger the Relay Function to forward PTT audio from 
+everyone on channel-3 to sent to the subscriber, as required
+typically in frontline applications.
 
 ### Manifest
 
@@ -768,7 +763,7 @@ the main resource. Subsribers who tune into channels typically get the names
 from the manifest to do so. Publshers publish their media to channels that 
 they are authorized to. 
 
-### Example
+#### Example
 
 An example retail store scenario where users Alice, Bob subscribe to the 
 bakery channel and Carl subscribes to the gardening channel. Also an 
@@ -777,18 +772,14 @@ delivered to Alice and Bob but not Carl.
 
 
 ```
+Alice: authorized to talk/listen on Channel Bakery
+Bob:   authorized to talk/listen on Channel Bakery
+Carl:  authorized to talk/listen on Channel GARDENING
+Tom:   authorized to talk/listen on channels Bakery 
+       and Gardening
 
-Bakery -> Alice and she is authorized to talk/listen on 
-Channel Bakery.
-Bob's SenderID -> Bob and he is authorized to talk/listen on 
-Channel Bakery.
-Carl's SenderID -> carl and he is authorized to talk/listen on 
-Channel Gardening.
-Tom's SenderID -> Tom and he is authorized to talk/listen on 
-channels Bakery and Gardening
-
-Bakery Channel Id -> 1234
-Gardening Channel Id -> 5678
+Bakery Channel Id -> bakery
+Gardening Channel Id -> gardening
 
 ```
 
@@ -798,22 +789,31 @@ Manifest encoded as json objects might capture the information as below.
 ```
 {
     "origin": "walmart.com",
-    "sto
+    "storeId": "store22
     "channel": [
         {
             "name": "bakery",
-            "id" : "1234"
+            "id" : "bakery",
+            "codec": "opus",
+            "quality": "48khz",  
+            ....          
         },
         {
             "name": "gardening",
-            "id" : "5678"
+            "id" : "gardening",
+            "codec": "opus",
+            "quality": "48khz",
+            ...
         },
     ]
 }
 
 ```
-Alice and Bob shall send `SUBSCRIBE` to channel Bakery and Carl does 
-the same for channel Gardening.
+
+Alice and Bob shall subscribe to channel Bakery
+`quicr://wamart.com/store22/bakery/*`
+and Carl subscribe to channel Gargdening
+`quicr://wamart.com/store22/gardening/*`.
 
 ## Low Latency Streaming Applications
 
