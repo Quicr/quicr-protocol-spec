@@ -13,12 +13,17 @@ between what different viewers are seeing. All of these usescases
 push towards latencies that are in the order of 100ms over the 
 natural latency the network causes.
 
-The architecture for this specificaiton is outlines in
-draft-jennings-moq-arch and this specification does not make sense
-without first reading that.
-Client endpoints publish and subscribe to named objects that is sent to, and
-received from, relays that forms an overlay delivery network similar to
-what CDN provides today.
+The architecture for this specificaiton is outlined in
+draft-jennings-moq-arch, where the principal idea is 
+Client endpoints publish and subscribe to named objects that 
+is sent to, and received from, relays that forms an overlay 
+delivery network similar to what CDN provides today.
+
+The architecture specification, draft-jennings-moq-arch, is a 
+prequisite to read this specification.
+
+This specification defines the protocol specifics of the 
+QuicR Media Delievery Architecture.
 
 # Contributing
 
