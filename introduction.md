@@ -82,18 +82,7 @@ TODO: How does quicr minimize the manifest overload
 The Origin server within the QuicR architecture performs the following 
 logical roles
 
-CJ - do we need and this next thing ? Lets talk about it
-
- - NamedDataIndex Server : NameDataIndex is an authorized server for a 
- given Origin and can be a logical component of the Origin server. This 
- component enables discovery, authorization and distribution of names within the 
- QuicR architecture. Names and the associated application specific metadata are 
- distributed via containers called Manifests. See {#Naming} for further detials 
- on names and manifests.
-
- - Relay Function - Optionally an Origin server can support relay functionality.
-
- - Application specific functionality that is out of scope for this specification.
+TODO: Need to fill in this
 
 ## Relays
 
@@ -117,3 +106,4 @@ subscriber and objects are sent in priority order.
 Relays MAY cache some of the information for short period of time and
 the time cached may depend on the origin.
 
+TODO: Add a call flow diagram

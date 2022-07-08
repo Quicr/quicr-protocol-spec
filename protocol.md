@@ -43,18 +43,6 @@ quicr_message {
 
 The length is encoded as a 16 bit number in big endian network order.
 
-QUICR defines the following control messages:
-
-* SUBSCRIBE_STREAM: subscribe to named media data in stream mode, to be delivered
-  via QUIC streams.
-* SUBSCRIBE_DATAGRAM: subscribe to a named media data to be delivered vi a QUIC
-  datagrams.
-* PUBLISH_INTENT: intent to publish a media stream towards the origin
-* PUBLISH_INTENT_OK: indicates that the request to publish over a given name has been accepted by the next relay or by the origin
-* START_POINT: indicates group_id and object_id of first object sent on stream
-* FIN_DATAGRAM: indicates group_id and object_id of last object sent as datagram
-* FRAGMENT: Container to carry a media fragment
-
 
 ### Subscribe Message
 
