@@ -30,7 +30,7 @@ actions to enable the QuicR protocol:
 Origin server, and on the receipt of ``` SUBSCRIBE_REPLY ```, store the 
 subscriber info against the names in the NAMES_SUCCESS field of the 
 ``` SUBSCRIBE ``` message. If an entry for the name exists already, add the 
-new subscriber to the list of Subscibers. [ See Subscribe Aggregations]. 
+new subscriber to the list of Subscribers. [ See Subscribe Aggregations]. 
 
 2. If there exists a matching named object for a subscription in the cache, 
 forward the data to the subscriber(s) based on the Subscriber INTENT. 
@@ -46,11 +46,11 @@ all the active subscribers, if any, matching the given name.
 
 The payload associated with a given ``` PUBLISH ``` message MUST not be 
 cached longer than the __BESTBEFORE__ time specified. Also to note, the 
-local policies dicatated by the caching service provider can always 
+local policies dictated by the caching service provider can always 
 overwrite the caching duration for the published data.
 
 Relays MUST NOT modify the either the ```Name``` or the contents of 
-``` PUBLISH/SUBSCRIBE``` messags expect for performing the necessary 
+``` PUBLISH/SUBSCRIBE``` message expect for performing the necessary 
 forwarding and caching operations as described above.
 
 ## Relay fail over
@@ -93,7 +93,7 @@ needs to be carried out:
 
 1. The fragments are relayed to the subscriber as they arrive
 
-2. The fully assembled fragments are stored based on attrbutes
+2. The fully assembled fragments are stored based on attributes
  associated with the data and cache local policies.
 
 It is up to the applications to define the right sized fragments 

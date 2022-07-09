@@ -1,34 +1,34 @@
 # Introduction
 
-This specifiction defines QUICR, a media delivery protocol 
+This specification defines QUICR, a media delivery protocol 
 over QUIC.
 
-Recently new usecases have emerged requiring higher scalability of
+Recently new use cases have emerged requiring higher scalability of
 delivery for interactive realtime applications and much lower latency
 for streaming applications and a combination thereof. 
 
 On one side are use cases such as normal web conferences wanting to 
 distribute out to millions of viewers and allow viewers to instantly 
 move to being a presenter (active participant). On the other side are 
-usescases such as streaming a soccer game to millions of people 
+use cases such as streaming a soccer game to millions of people 
 including people in the stadium watching the game live. Viewers 
 watching an e-sports event want to be able to comment 
 with low latency to ensure the interactivity aspects between what 
-different viewers are preserved. All of these usescases push 
+different viewers are preserved. All of these use cases push 
 towards latencies that are in the order of 100ms over the 
 natural latency the network causes.
 
-The architecture for this specificaiton is outlined in
+The architecture for this specification is outlined in
 draft-jennings-moq-arch, where the principal idea is 
 Client endpoints publish and subscribe to named objects that 
 is sent to, and received from, relays that forms an overlay 
 delivery network similar to what CDN provides today.
 
 The architecture specification, draft-jennings-moq-arch, is a 
-prequisite to read this specification.
+perquisite to read this specification.
 
 This specification defines the protocol specifics of the 
-QuicR Media Delievery Architecture.
+QuicR Media Delivery Architecture.
 
 # Contributing
 
@@ -69,11 +69,11 @@ https://github.com/Quicr/quicr-protocol-spec ```
 This section provides a non-normative description for the QuicR protocol.
 
 At a high level, entities within QuicR architecture publish named media 
-objects and consume media by susbcribing to the named objects. Some 
+objects and consume media by subscribing to the named objects. Some 
 entities perform "Relay" function providing the store and forward behavior
-to server subscription requests that optimize media delivery lantencies
+to server subscription requests that optimize media delivery latencies
 and quality wherever applicable. The names used in the QuicR protocol 
-are scoped and authorozied to a domain by the Origin serving the domain. 
+are scoped and authorized to a domain by the Origin serving the domain. 
 
 TODO: How does quicr minimize the manifest overload
 

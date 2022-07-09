@@ -20,7 +20,7 @@ as given below
   The latter is supported via wildcarding.
 
 * A QUICR name is composed of 3 components. Domain Identifier, 
-  Application Instance identifier and the Data Identfier. 
+  Application Instance identifier and the Data Identifier. 
 
 * Named objects should enable caching in relays in a way CDNs cache resources 
   and thus can obtain similar benefits such caching mechanisms would offer.
@@ -34,7 +34,7 @@ The names of each object in QUICR is composed of the following components:
 3. Data Identifier
 
 Domain component uniquely identifies a given application domain. This is
-like a HTTP Origin or an standardized identifierthat uniquely identifies the application and a root relay function. 
+like a HTTP Origin or an standardized identifier that uniquely identifies the application and a root relay function. 
 
 Application component is scoped under a given Domain. This
 component identifies aspects specific to a given application instance

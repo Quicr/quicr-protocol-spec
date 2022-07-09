@@ -1,6 +1,5 @@
-
-
 # QuicR Protocol
+
 ## Publish API and PUBLISH  Message
 
 Entities the want to send named objects will use Publish API to 
@@ -8,14 +7,14 @@ trigger `PUBLISH` messages from a QuicR client to Origin server
 (via Relay(s) if present). The publish message identies active flow 
 of named objects, such a data can be originating from a given QuicR 
 endpoint client or a might be relayed by other entities. In the latter 
-case, the relaying entitiy MUST NOT change the name associated with 
+case, the relaying entity MUST NOT change the name associated with 
 the object being published unless the intermediary is a publisher.
 All the publishes MUST be authorized.
  
 TODO Add details end to end integrity protected and e2ee protected 
 parts of the message 
 
-In general, the Publish API specifices following thing about 
+In general, the Publish API specifies following thing about 
 the named objects being published.
 
 ```
@@ -31,7 +30,7 @@ the named objects being published.
 __NAME__: Every `PUBLISH` message MUST have a name to identify the 
 object to the QuicR components (relays/origin-server/other clients). 
 
-__PAYLOAD__: End-to-End encrtpyted application data assciated with 
+__PAYLOAD__: End-to-End encrypted application data associated with 
 the named object to be published (e.g audio sample, video frame, 
 game move), which are typically timestamped buffers of application data. 
 
@@ -73,13 +72,13 @@ subscriptions to the named objects. The Subscribe API triggers
 sending `SUBSCRIBE` messages. Subscriptions are sent from 
 the QuicR clients to the origin server(s) (via relays, if present) 
 and are typically processed by the relays. See {#relay_behavior} 
-for further details. All the subsriptions MUST be authorized.
+for further details. All the subscriptions MUST be authorized.
  
-Subscriptions are typically long-lived transcations and they stay 
+Subscriptions are typically long-lived transactions and they stay 
 active until one of the following happens 
 
    - a client local policy dictates expiration of a subscription.
-   - optionally, a server policy dicates subscription expiration.
+   - optionally, a server policy dictates subscription expiration.
    - the underlying transport is disconnected.
 
 When an explicit indication is preferred to indicate the  expiry of 
@@ -87,7 +86,7 @@ subscription, it is indicated via `SUBSCRIPTION_EXPIRY` message.
 
 While the subscription is active for a given name, the Relay(s) 
 should send named objects it receives to all the matching subscribers. 
-A QuicR client can renew its subscrptions at any point by sending a 
+A QuicR client can renew its subscriptions at any point by sending a 
 new `SUBSCRIBE` message to the origin server. Such subscriptions 
 MUST refresh the existing subscriptions for that name. A renewal
 period of 5 seconds is RECOMMENDED.
@@ -108,10 +107,10 @@ NAME {
 ```
 
 The `ORIGIN` field identifies the Origin server for which this 
-subscrption is targetted. `SUBSCRIPTION_ID` is a randomly chosen
+subscription is targeted. `SUBSCRIPTION_ID` is a randomly chosen
 to identify the subscription by a given client and is
 local to the client's session. `NAMES` identify the fully formed
-names or wildcarded names along with the approporiate bitmask length.
+names or wildcard names along with the appropriate bitmask length.
 
 The `INTENT` field specifies how the Relay should provided the
 named objects to the client. Following options are defined for 
@@ -135,12 +134,12 @@ matches the name.
 Subscriptions are aggregated at entities that perform Relay Function. 
 Aggregating subscriptions helps reduce the number of subscriptions 
 for a given named objects in transit and also enables efficient 
-disrtibution of published media with minimal copies between the 
+distribution of published media with minimal copies between the 
 client and the origin server , as well as reduce the latencies when 
 there are multiple subscribers for a given named object behind a 
 given cloud server.
 
-### Wildcarded Names
+### Wildcard Names
 
 The names used in `SUBSCRIBE` can be truncated by skipping the right 
 most segments of the name that is application specific, in which case it 
@@ -208,8 +207,8 @@ the origin server.
 
 ## SUBSCRIBE_REPLY Message
 
-A ```SUBSCRIBE_REPLY``` provides result of the subsciptions. It lists the 
-names that were successful in subscrptions and ones that failed to do so.
+A ```SUBSCRIBE_REPLY``` provides result of the subscriptions. It lists the 
+names that were successful in subscriptions and ones that failed to do so.
 
 ```
 SUBSCRIBE_REPLY
@@ -253,7 +252,7 @@ fragmentation and reassembly. Each fragment needs to be small enough to
 send in a single transport packet. The low order bit is also a Last 
 Fragment Flag to know the number of Fragments. The upper bits are used 
 as a fragment counter with the frist fragment starting at 1.
-The `FRAGMENT_ID` with in the `PUBLISH` message identfies the individual
+The `FRAGMENT_ID` with in the `PUBLISH` message identifies the individual
 fragments.
 
 # Relay Function and Relays {#relay_behavior}
@@ -288,7 +287,7 @@ actions to enable the QuicR protocol:
 Origin server, and on the receipt of ``` SUBSCRIBE_REPLY ```, store the 
 subscriber info against the names in the NAMES_SUCCESS field of the 
 ``` SUBSCRIBE ``` message. If an entry for the name exists already, add the 
-new subscriber to the list of Subscibers. [ See Subscribe Aggregations]. 
+new subscriber to the list of Subscribers. [ See Subscribe Aggregations]. 
 
 2. If there exists a matching named object for a subscription in the cache, 
 forward the data to the subscriber(s) based on the Subscriber INTENT. 
@@ -304,11 +303,11 @@ all the active subscribers, if any, matching the given name.
 
 The payload associated with a given ``` PUBLISH ``` message MUST not be 
 cached longer than the __BESTBEFORE__ time specified. Also to note, the 
-local policies dicatated by the caching service provider can always 
+local policies dictated by the caching service provider can always 
 overwrite the caching duration for the published data.
 
 Relays MUST NOT modify the either the ```Name``` or the contents of 
-``` PUBLISH/SUBSCRIBE``` messags expect for performing the necessary 
+``` PUBLISH/SUBSCRIBE``` message expect for performing the necessary 
 forwarding and caching operations as described above.
 
 ## Relay fail over
@@ -351,7 +350,7 @@ needs to be carried out:
 
 1. The fragments are relayed to the subscriber as they arrive
 
-2. The fully assembled fragments are stored based on attrbutes
+2. The fully assembled fragments are stored based on attributes
  associated with the data and cache local policies.
 
 It is up to the applications to define the right sized fragments 
@@ -369,7 +368,7 @@ CJ - do we need and this next thing ? Lets talk about it
  given Origin and can be a logical component of the Origin server. This 
  component enables discovery, authorization and distribution of names within the 
  QuicR architecture. Names and the associated application specific metadata are 
- distributed via containers called Manifests. See {#Naming} for further detials 
+ distributed via containers called Manifests. See {#Naming} for further details 
  on names and manifests.
 
  - Relay Function - Optionally an Origin server can support relay functionality.
@@ -448,7 +447,7 @@ shall subscribe to the name
 
 ## Streams vs Datagrams
 
-Publishers of the named-data can specify the reliability gaurantees that is 
+Publishers of the named-data can specify the reliability guarantees that is 
 expected from the QUIC transport. Setting of `IS_RELIABLE` flag to true 
 enables sending the application data as QUIC streams, otherwise as QUIC Datagrams.
 
@@ -483,7 +482,7 @@ recovery mechanisms like retransmissions and possibly a suitable forward
 error correction mechanism. This is especially true for packet loss 
 sensitive applications to be resilient against these losses.
 
-QUIC support ACK & Retranmission for QUIC Streams, but just ACKs for 
+QUIC support ACK & Retransmission for QUIC Streams, but just ACKs for 
 QUIC DATAGRAMs. To embrace realtime flows, QUIC's receiver-ts and/or 
 one-way-delay efforts needs to be evaluated within the context 
 of QuicR work.
@@ -521,7 +520,7 @@ different sourceID for each quality representation.
 
 For A/V conference, the encoded media frames are formed into 
 group of objects, where each group defines an independent 
-decodeable object set. In case of video, each group 
+decodable object set. In case of video, each group 
 comprises of objects on I-Frame boundaries, for audio a group
 would map to an encoded audio sample for codecs used today.
 
@@ -545,7 +544,7 @@ source or quality layers or a combination thereof. Similarly the SenderID
 may get mapped from a roster equivalent for the meeting.
 
 A manifest may get updated several times during a session - either due to 
-capabilities updates from existing participants or new participants joinings 
+capabilities updates from existing participants or new participants joining 
 or so on.
 
 Participants who wish to receive media from a given meeting in a web conference 
@@ -660,7 +659,7 @@ have the form:
 
 Frontline communications application like Push To Talk have close semblances 
 with the publish/subscribe metaphor. In a typical setup, say a retail store, 
-there are mutiple channels (bakery, garden) and retail workers with PTT 
+there are multiple channels (bakery, garden) and retail workers with PTT 
 communication devices access the chatter over such channels by tuning into 
 them. In a typical use-case, the retails workers might want to tune into one 
 or more channels of their interest and expect the media delivery system to 
@@ -758,7 +757,7 @@ Manifest encoded as json objects might capture the information as below.
 
 Alice and Bob shall subscribe to channel Bakery
 `quicr://wamart.com/store22/bakery/*`
-and Carl subscribe to channel Gargdening
+and Carl subscribe to channel Gardening
 `quicr://wamart.com/store22/gardening/*`.
 
 ## Low Latency Streaming Applications
@@ -766,10 +765,10 @@ and Carl subscribe to channel Gargdening
 A typical streaming application can be divided into 2 halves - media ingest 
 and media distribution. Media ingestion is done via pushing one or more 
 streams of different qualities to a central server. Media Distribution 
-downstream is customized (via quality/rate adapation) per consumer by 
+downstream is customized (via quality/rate adaptation) per consumer by 
 the central server.
 
-One can model ingestion as sending `PUBLISH` mesages and the 
+One can model ingestion as sending `PUBLISH` messages and the 
 associated sources as publishers. Similarly, the consumers/end 
 clients of the streaming media `SUBSCRIBE` to the media elements 
 whose names are defined in the manifest. Manifest describes the 
@@ -852,7 +851,7 @@ streaming use-cases
 
 Applications, such as games or the ones based on virtual reality environment, 
 have to need to share state about various objects across the network. This 
-involves pariticipants sending small number of objects with state that need 
+involves participants sending small number of objects with state that need 
 to be synchronized to the other side and it needs to be done periodically 
 to keep the state up to date and also reach eventually consistency under 
 losses.
@@ -860,10 +859,10 @@ losses.
 Goals of such applications typically involve
 - Support 2D and 3D objects
 - Support delay and rollback based synchronization
-- Easily extensible for applications to send theirown custom data
+- Easily extensible for applications to send their own custom data
 - Efficient distribution to multiple users
 
-todo finsih this
+TODO finish this
 
 # Security
 

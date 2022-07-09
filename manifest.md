@@ -2,8 +2,8 @@
 
 QuicR Manifests provides a light-weight declarative way for the 
 publishers to advertise their capabilities for publishing media. 
-Manfiest publisher advertisement captures supported codec list, 
-encoding rates and also usecase specific media properties such as 
+Manifest publisher advertisement captures supported codec list, 
+encoding rates and also use case specific media properties such as 
 languages supported. Publisher advertisements 
 are intend to declare publisher's capabilities and a publisher 
 is free to choose a subset of those advertised in the manifest
@@ -11,22 +11,23 @@ as part of the session and thus not requiring a manifest update.
 However, in the case where a new capability needs to be advertised, 
 a manifest update MAY be necessary. 
 
-Publishers can advertise their capabilties via QuicR Control channel,
+Publishers can advertise their capabilities via QuicR Control channel,
 as and when its deemed necessary, under its own named object. Manifest
 objects are also scoped to a domain and the application under a 
-given Origin server. A seperate control channel is setup for 
+given Origin server. A separate control channel is setup for 
 
 Subscribers can retrieve the manifest for a given session by subscribing
 to the well-known manifest QuicR name with the Origin server. On retrieving 
 the manifest, Subscribers/Receivers of the media can discover names 
 being published and in turn request media for the corresponding
-names by sending appropriate subscrptions (with wildcarding as necessary).
+names by sending appropriate subscriptions (with wildcarding as necessary).
 
 At any point in the session, updated manifest is pushed to the subscribers
 like any media objects are delivered to the subscribers of the manifest
 QuicR name.
 
 ## Scope of the manifest - what it is not ?
+
 The role of the manifest is to identify the names as well as aspects
 pertaining to the associated data in a given usage context of the
 application.

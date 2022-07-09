@@ -1,12 +1,12 @@
 # QUICR Protocol Design
 
 QUICR supports delivering media over QUIC Streams as well as over 
-QUIC Datagrams as choosen by the application.
+QUIC Datagrams as chosen by the application.
 /// TODO : Add api to pick in order or out of order delivery
 
-Media delivery in QUICR is started by the pubisher/subscriber setting
+Media delivery in QUICR is started by the punisher/subscriber setting
 up a Control Channel for a given QuicR name. The control channel, which
-is based on QUIC straeam, is used to configure and setup properties for 
+is based on QUIC stream, is used to configure and setup properties for 
 the Media channel. Media data is delivered over the Media Channel setup 
 as QUIC streams or QUIC datagrams based on the application settings. 
 The Control Channel can also be used to configure in-session parameter.
@@ -50,14 +50,14 @@ Entities that intend to receive named objects will do so via
 subscriptions to the named objects. Subscriptions are sent from 
 the QUICR clients to the origin server(s) (via relays, if present) 
 and are typically processed by the relays. See {#relay_behavior} 
-for further details. All the subsriptions MUST be authorized at
+for further details. All the subscriptions MUST be authorized at
 the Origin server.
  
 Subscriptions are typically long-lived transactions and they stay 
 active until one of the following happens 
 
    - a client local policy dictates expiration of a subscription.
-   - optionally, a server policy dicates subscription expiration.
+   - optionally, a server policy dictates subscription expiration.
    - the underlying transport is disconnected.
 
 When an explicit indication is preferred to indicate the  expiry of 
@@ -65,7 +65,7 @@ subscription, it is indicated via `SUBSCRIPTION_EXPIRY` message.
 
 While the subscription is active for a given name, the Relay(s) 
 must send named objects it receives to all the matching subscribers. 
-A QUICR client can renew its subscrptions at any point by sending a 
+A QUICR client can renew its subscriptions at any point by sending a 
 new `SUBSCRIBE` message. Such subscriptions 
 MUST refresh the existing subscriptions for that name. A renewal
 period of 5 seconds is RECOMMENDED.
@@ -92,8 +92,8 @@ quicr_subscribe_message {
 The message type will be set to SUBSCRIBE_STREAM (1) if the client wants to receive the media in stream mode (via QUIC streams), or SUBSCRIBE_DATAGRAM (2) if receiving in datagram mode. If in datagram mode, the client must select a datagram stream id that is not yet used for any other media stream.
 
 The origin field in the name identifies the Origin server for which this 
-subscrption is targetted.  `name` identified the fully formed
-name or wildcarded name along with the approporiate bitmask length.
+subscription is targeted.  `name` identified the fully formed
+name or wildcard name along with the appropriate bitmask length.
 
 The `intent` field specifies how the Relay Function should provided the
 named objects to the client. Following options are defined for 
@@ -113,12 +113,12 @@ received then start sending any objects that match the name.
 Subscriptions are aggregated at entities that perform Relay Function. 
 Aggregating subscriptions helps reduce the number of subscriptions 
 for a given named object in transit and also enables efficient 
-disrtibution of published media with minimal copies between the 
+distribution of published media with minimal copies between the 
 client and the origin server, as well as reduce the latencies when 
 there are multiple subscribers for a given named object behind a 
 given cloud server.
 
-#### Wildcarded Names
+#### Wildcard Names
 
 The names used in `subscribe` can be truncated by skipping the right 
 most segments of the name that is application specific, in which case it 
@@ -129,10 +129,10 @@ turns into a bitmask at the appropriate bit location of the hashed name.
 
 ### SUBSCRIBE_REPLY Message
 
-A `SUBSCRIBE_REPLY` provides result of the subsciption.
+A `SUBSCRIBE_REPLY` provides result of the subscription.
 
 ```
-enum reponse 
+enum response 
 {
   ok(0),
   expired(1)
@@ -148,9 +148,9 @@ quicr_subscribe_reply
 }
 ```
 
-A reponse of `ok` indicates successful subscription, for `failed` 
-or `expired` reponses, "Reason Phrase" shall be populated 
-with appropriate reason. An reponse of `redirec` informs 
+A response of `ok` indicates successful subscription, for `failed` 
+or `expired` responses, "Reason Phrase" shall be populated 
+with appropriate reason. An response of `redirect` informs 
 the client that relay shall no longer is serving the subscriptions
 and client should retry to the alternate relay provided in the
 redirect message.
@@ -355,7 +355,7 @@ The `offset_and_fin` field encodes two values, as in:
 offset_and_fin = 2*offset + is_last_fragment
 ```
 
-The `flags` idenitifes the relative `priority` of this object and if the object
+The `flags` identifies the relative `priority` of this object and if the object
 can be discarded. This can help Relay to make  dropping/caching decisions.
 
 The `nb_objects_previous_group` is present if and only if this is the first fragment of the first object in a group, i.e., `object_id` and `offset` are both zero. The number indicates how many objects were sent
@@ -366,10 +366,10 @@ Relays may forward fragments even if they arrive out of order.
 ## Fragmentation and Reassembly
 
 Application data may need to be fragmented to fit the underlying transport 
-packet size requirements. QuicR protocol is responsbile for performing necessary 
+packet size requirements. QuicR protocol is responsible for performing necessary 
 fragmentation and reassembly. Each fragment needs to be small enough to 
 send in a single transport packet. The low order bit is also a Last 
 Fragment Flag to know the number of Fragments. The upper bits are used 
-as a fragment counter with the frist fragment starting at 1.
-The `FRAGMENT_ID` with in the `PUBLISH` message identfies the individual
+as a fragment counter with the first fragment starting at 1.
+The `FRAGMENT_ID` with in the `PUBLISH` message identifies the individual
 fragments.

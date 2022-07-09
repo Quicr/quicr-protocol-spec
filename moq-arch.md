@@ -2,16 +2,16 @@
 
 # Introduction
 
-Recently new usecases have emerged requiring higher scalability of
+Recently new use cases have emerged requiring higher scalability of
 delivery for interactive realtime applications and much lower latency
 for streaming applications and a combination thereof. On one side are
 use cases such as normal web conferences wanting to distribute out to
 millions of viewers and allow viewers to instantly move to
-being a presenter. On the other side are usescases such as streaming a
+being a presenter. On the other side are use cases such as streaming a
 soccer game to millions of people including people in the stadium
 watching the game live. Viewers watching an e-sports event want to be
 able to comment with low latency to ensure the interactivity aspects
-between what different viewers are seeing. All of these usescases 
+between what different viewers are seeing. All of these use cases 
 push towards latencies that are in the order of 100ms over the 
 natural latency the network causes.
 
@@ -191,14 +191,14 @@ conferencing and gaming.
 
 # QuicR architecture
 
-A typical media delivery achitecture based on QuicR enables
+A typical media delivery architecture based on QuicR enables
 delivery tree allowing :
 
 - Publishing entities to publish named data
 - Subscribers to express interest in the named objects
 - Delivery tree made up of one or more Relays to allow the flow of the named objects.
 
-In the following subsections, 2 common QuicR delivery tree archiectures are 
+In the following subsections, 2 common QuicR delivery tree architectures are 
 non-normatively discussed 
 
 ## QuicR Delivery Network Architecture with Origin as the only Relay Function.
@@ -223,8 +223,8 @@ The above picture shows QuicR delivery network for an hypothetical
 streaming architecture rooted at the Origin Relay (for the domain
 tw.com). In this architecture, the media contribution is done by 
 publishing named objects corresponding to channel-22 to the ingest
-server at the Orgin Relay. Media consumption happens via 
-subscribes sent to the Origin Relay to wildcarded name (ch22/*) 
+server at the Origin Relay. Media consumption happens via 
+subscribes sent to the Origin Relay to wildcard name (ch22/*) 
 for all media streams happening over the named channel-22. 
 The media published either by the source publisher or the 
 Relay (as Publisher) might be encoded into multiple qualities.
@@ -270,7 +270,7 @@ All the subscribes are sent to the Origin Relay and are
 saved at the on-path Relays, this allowing for "short-circuited"
 delivery of published data at the relays. In the above example,
 Bob gets Alice's published data directly from Relay-A instead 
-of hairpinning from the Origin Relay. Carl and Derek, however
+of hair-pinning from the Origin Relay. Carl and Derek, however
 get their video stream relayed from Alice via Origin Relay 
 and Relay-B.
 
@@ -346,7 +346,7 @@ whole names ( wildcard support ).
 !--
 ~~~ascii-art
 ┌─────────────┬───────────────┬───────────────┬─────────────┐
-│ Domain      │ Appication    │ GroupID       │ ObjectID    │
+│ Domain      │ Application    │ GroupID       │ ObjectID    │
 │ Component   │ Component     │ Component     │ Component   │
 └─────────────┴───────────────┴───────────────┴─────────────┘
     48 bits        48 bits         16 bits       16 bits
@@ -497,7 +497,7 @@ RUSH's video frame is equivalent to QuicR video object that represents
 an instance of encoder output. For video ingestion, the RUSH publisher 
 can assign the same groupId for all the frames generated between the I-Frames
 and the RUSH's frameID can be directly mapped to QuicR's object ID. 
-RUSH multistream mode can be easily supported by publishing each frame 
+RUSH multi-stream mode can be easily supported by publishing each frame 
 over QUIC Stream indicated via QuicR API, since QuicR supports both
 the QUIC Datagram and QUIC Stream modes of transport.
 
@@ -522,15 +522,15 @@ live media to QUIC streams based on the underlying media encoding.
 Conceptually, each Warp video media segment maps to QuicR groupID and frames
 within segment to QuicR objectID. Warp video media segments 
 are made up of I-Frames and zero or more related frames, which
-correspon to QuicR group of objects. QuicR named objects correspond 
+correspond to QuicR group of objects. QuicR named objects correspond 
 to these frames mapped to these segments and are published individually. 
-For a given channel and vidoe quality, a segment and its frames can 
+For a given channel and video quality, a segment and its frames can 
 be mapped to QuicR name as below:
 
 ```quicr://twitch.com/channel-fluffy/video-quality-id/group12/object0```
 
 In this example, groupId 12 maps to Warp segmentId 12 and objectId 0
-corresponds to I-frame within tthat segment.
+corresponds to I-frame within that segment.
 
 
 ## QuicR Audio Objects
@@ -556,7 +556,7 @@ follow.
 
 Chat applications and messaging system can form a manifest representing
 the roster of the people in a given channel or talk room. The manifest
-can provide information on the application componentd for user that are
+can provide information on the application component for user that are
 contributes messages. A subscription to each application component enables
 reception of each new message. Each message would be a single
 object. Typically QuicR would be use to get the recent messages and then
@@ -576,7 +576,7 @@ adequate. For other applicants keying based on MLS may be more
 appropriate. Many applications can leverage the existing key managed scheme
 used in HLS and DASH for DRM protected content.
 
-Relays reachable on the Internet are assumed to have a burstiness
+Relays reachable on the Internet are assumed to have a bustiness
 relationship with teh Origin and the protocol provides a way to verify
 that any data moved is on behalf of a give Origin. 
 
