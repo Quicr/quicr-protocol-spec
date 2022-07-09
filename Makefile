@@ -16,12 +16,7 @@ clean:
 lint: gen/draft-jennings-moq-proto.xml
 	rfclint gen/draft-jennings-moq-proto.xml
 
-format:
-	mkdir -p gen
-	mmark  moq-arch.md >  gen/moq-arch.md
-	echo updated MD is in  gen/moq-arch.md
-
-gen/draft-jennings-moq-proto.xml: rfc.md abstract.md  moq-proto.md contributors.md
+gen/draft-jennings-moq-proto.xml: abstract.md contributors.md introduction.md manifest.md naming.md protocol.md relay.md rfc.md title.md
 	mkdir -p gen
 	mmark  rfc.md > gen/draft-jennings-moq-proto.xml
 
@@ -34,7 +29,7 @@ gen/draft-jennings-moq-proto.pdf: gen/draft-jennings-moq-proto.xml
 gen/draft-jennings-moq-proto.html: gen/draft-jennings-moq-proto.xml
 	xml2rfc --html --v3 gen/draft-jennings-moq-proto.xml
 
-gen/doc-jennings-moq-proto2.pdf: abstract.md  moq-arch.md contributors.md 
+gen/doc-jennings-moq-proto.pdf: title.md abstract.md introduction.md naming.md protocol.md manifest.md relay.md contributors.md
 	mkdir -p gen 
-	pandoc -s title.md abstract.md  moq-arch.md contributors.md -o gen/doc-jennings-moq-proto2.pdf
+	pandoc -s title.md abstract.md introduction.md naming.md protocol.md manifest.md relay.md contributors.md -o gen/doc-jennings-moq-proto.pdf
 
