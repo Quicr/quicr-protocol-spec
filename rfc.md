@@ -60,7 +60,5 @@ organization = "Private Octopus Inc."
 
 {backmatter}
 
-# Acknowledgments
-
 {{contributors.md}}
 
