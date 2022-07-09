@@ -1,3 +1,5 @@
-Thanks to <TODO> for contributions and suggestions to this
+# Acknowledgments
+
+Thanks to TODO for contributions and suggestions to this
 specification.
 

@@ -1,5 +1,4 @@
-
-Recently new usecases have emerged requiring higher scalability of 
+Recently new use cases have emerged requiring higher scalability of 
 delivery for interactive realtime applications and much lower latency 
 for streaming applications and a combination thereof.
 draft-jennings-moq-arch specifies architectural aspects of

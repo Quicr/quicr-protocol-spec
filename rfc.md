@@ -1,6 +1,6 @@
 %%%
 title = "QuicR - Media Delivery Protocol over QUIC"
-abbrev = "quicr"
+abbrev = "QuicT Media"
 ipr= "trust200902"
 area = "transport"
 workgroup = ""
@@ -31,6 +31,15 @@ organization = "Cisco"
   email = "snandaku@cisco.com"
 
 
+[[author]]
+initials="C."
+surname="Huitema"
+fullname="Christian Huitema"
+organization = "Private Octopus Inc."
+  [author.address]
+  email = "huitema@huitema.net"
+
+
 %%%
 
 .# Abstract
@@ -39,11 +48,17 @@ organization = "Cisco"
 
 {mainmatter}
 
-{{moq-proto.md}}
+{{introduction.md}}
+
+{{naming.md}}
+
+{{protocol.md}}
+
+{{manifest.md}}
+
+{{relay.md}}
 
 {backmatter}
-
-# Acknowledgments
 
 {{contributors.md}}
 
