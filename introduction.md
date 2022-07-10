@@ -114,7 +114,9 @@ In the exchange depicted following sequence happen
 
 * Alice sets up a control channel (QUIC Stream) to the relay indicating 
 its intent to publish media with name (video1/1) as the representation id. 
-It does so by sending `publish_intent`.
+It does so by sending `publish_intent`. video1/1 might represent 
+video stream camera-1, quality-id 1 (HD), for example. QuicR manifests
+are used to setup and consume the names being published.
 
 * On receiving the `publish_intent` from Alice, the Relay 
 setups another control channel to the authorized Origin server and
