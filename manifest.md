@@ -92,7 +92,31 @@ and need not be the only way to encode the manifest.
 
 ```
 
-Given the above manifest, a subscriber who is capable of 4K stream
-shall subscribe to the name
+Given the above manifest, a publisher can produce 3 different streams each
+under its own QuicR name like shown below
 
-`quicr://jon.doe.music.live.tv/video/5678/*`
+```
+Publish objects under different qualties
+
+publish: quicr://jon.doe.music.live.tv/video/1234/groupN/objectM ... 
+
+publish: quicr://jon.doe.music.live.tv/video/5678/groupN/objectM ...
+
+publish: quicr://jon.doe.music.live.tv/video/9999/groupN/objectM ...
+
+```
+
+ and subscriber who is capable of receiving 4K stream shall subscribe to the name
+
+`
+subscribe: quicr://jon.doe.music.live.tv/video/5678/*
+`
+
+If the above subscriber wnats to swtich to a low quality stream, say indicated by congestion control, it 
+can do so by a new subscribe to a name for that qulaity as shown below,
+which happens to be 640x480_30fps av1 codec media stream.
+
+`
+subscribe: quicr://jon.doe.music.live.tv/video/9999/*
+`
+
