@@ -68,48 +68,43 @@ https://github.com/Quicr/quicr-protocol-spec ```
 
 # QuicR Protocol
 
-This section provides a non-normative description for the QuicR protocol.
-
 At a high level, entities within QuicR architecture publish named media 
 objects and consume media by subscribing to the named objects. Some 
 entities perform "Relay" function providing the store and forward behavior
-to server subscription requests that optimize media delivery latencies
-and quality wherever applicable. The names used in the QuicR protocol 
-are scoped and authorized to a domain by the Origin serving the domain. 
+to serve the subscription requests, that optimize media delivery latencies
+for local delivery and improved quality via local repairs, wherever applicable. 
+The names used in the QuicR protocol are scoped and authorized to a domain 
+by the Origin serving the domain. 
 
-TODO: How does quicr minimize the manifest overload
-
-## Origin Server 
-
-The Origin server within the QuicR architecture performs the following 
-logical roles
-
-TODO: Need to fill in this
+## Origin Server
+The Origin serves as the authorization authority for the named resources, 
+in the manner similar to an HTTP origin. QuicR names to be used under 
+a given domain and the application are authorized by the Origin server.
+It is also responsbilbe for establishing necessary trust relationship
+between the clients, the relay and itself
 
 ## Relays
+The Relays play an important role  within the QuicR architecture. They receive 
+subscriptions and intent to publish and forwards them towards the origin.
+This may involve sending messages directly to the Origin Relay or possibly 
+traverse another Relay on the path. Replies to theses message follow the reverse 
+direction of the request and when the Origin gives the OK to a subscription or 
+intent to publish, the Relay allows the subscription or future publishes to the 
+Names in the request.
 
-The relays receive subscriptions and intent to publish request and
-forward them towards the origin. This may send the messages
-directly to the Origin Relay or possibly traverse another Relay. Replies
-to theses message follow the reverse direction of the request and when
-the Origin gives the OK to a subscription or intent to publish, the
-Relay allows the subscription or future publishes to the Names in the
-request.
-
-Subscription received are aggregated. When a relay receives a publish
+Subscriptions received are aggregated. When a relay receives a publish
 request with data, it will forward it both towards the Origin and to any
-clients or relays that have a matching subscription. This "short
+clients or relays that have a matching subscriptions. This "short
 circuit" of distribution by a relay before the data has even reached the
-Origin servers provides significant latency reduction for nearby client.
+Origin servers provides significant latency reduction for clients closer
+to the relay.
 
 The Relay keeps an outgoing queue of objects to be sent to the each
-subscriber and objects are sent in priority order.
+subscriber and objects are sent in priority order. Relays MAY cache some 
+of the information for short period of time and the time cached may depend 
+on the origin.
 
-Relays MAY cache some of the information for short period of time and
-the time cached may depend on the origin.
-
-
-Below callflow is high-level exchage capturing publish/subscribe 
+Below example callflow is high-level exchage capturing publish/subscribe 
 flow between Alice, the publisher and Bob, Carl, the subscribers 
 and the  interactions that occur between Relays on-path and the origin 
 server. The details on how the trust setup happens between these
@@ -134,8 +129,8 @@ corresponding to the wildcard'ed name (video1/*). They each
 send `subscribe` messages to the Relay on the control channel and 
 the same is forwarded by the Relay to the Origin. Successful subscribe 
 responses are sent back to Bob and via the relay. Relay makes
-note of Bob and Carl's interest in the name (video1/1).
-The details of knowing the name via `manifest is skipped in the callflow.
+note of Bob and Carl's interest in the name (video1/*).
+The details of knowing the name via `manifest` is skipped in the callflow.
 
 * Eventually, Alice publishes media on the name (video1/1) towards
 the relay on the media channel, which could be over QUIC Streams

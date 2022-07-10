@@ -52,13 +52,15 @@ organization = "Private Octopus Inc."
 
 {{naming.md}}
 
-{{protocol.md}}
-
 {{manifest.md}}
+
+{{protocol.md}}
 
 {{relay.md}}
 
 {backmatter}
 
 {{contributors.md}}
+
+{{todo.md}}
 

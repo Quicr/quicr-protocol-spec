@@ -1,7 +1,7 @@
 # Relay Function and Relays {#relay_behavior}
 
 Clients may be configured to connect to a local relay which then does a 
-Publish/Subscribe for the appropriate named data towards the origin  or 
+Publish/Subscribe for the appropriate named data towards the origin or 
 towards another Relay. These relays can aggregate the subscriptions of 
 multiple clients. This allows a relay in the LAN to aggregate request from 
 multiple clients in subscription to the same data such that only one copy of 
@@ -26,36 +26,37 @@ function in a Isomorphic deployment, if needed.
 Non normatively, the Relay function is responsible carryout the following 
 actions to enable the QuicR protocol:
 
-1. On reception of ``` SUBSCRIBE ``` message, forward the message to the 
-Origin server, and on the receipt of ``` SUBSCRIBE_REPLY ```, store the 
-subscriber info against the names in the NAMES_SUCCESS field of the 
-``` SUBSCRIBE ``` message. If an entry for the name exists already, add the 
-new subscriber to the list of Subscribers. [ See Subscribe Aggregations]. 
+1. On reception of subscriptions, forward the message to the 
+Origin server, and on the receipt of successful response, store the 
+subscriber info against the names. If an entry for the name exists already, 
+add the new subscriber to the list of Subscribers. [ See Subscribe Aggregations]. 
 
 2. If there exists a matching named object for a subscription in the cache, 
 forward the data to the subscriber(s) based on the Subscriber INTENT. 
 
-3. On reception of ```PUBLISH_INTENT``` message, forward the
+3. On reception of `publish_intent` message, forward the
  message to the Origin server, and on the receipt of 
- ``` PUBLISH_INTENT_OK ```, store the names as authorized against a 
+ ` publish_intent_ok `, store the names as authorized against a 
  given publisher.
 
-4. If a named object arrives at the relay via ```PUBLISH``` message , 
+4. If a named object arrives at the relay via `publish` message , 
 cache the name and the associated data, also distribute the same to 
 all the active subscribers, if any, matching the given name.
 
-The payload associated with a given ``` PUBLISH ``` message MUST not be 
-cached longer than the __BESTBEFORE__ time specified. Also to note, the 
+The published named object MUST not be cached longer than the 
+__BESTBEFORE__ time specified. Also to note, the 
 local policies dictated by the caching service provider can always 
 overwrite the caching duration for the published data.
 
-Relays MUST NOT modify the either the ```Name``` or the contents of 
-``` PUBLISH/SUBSCRIBE``` message expect for performing the necessary 
+Relays MUST NOT modify the either the `name` or the contents of 
+` PUBLISH/SUBSCRIBE` message expect for performing the necessary 
 forwarding and caching operations as described above.
+
+TODO: Define security properties
 
 ## Relay fail over
 
-A relay that wants to shutdown and use the redirect message to move traffic 
+A relay that wants to shutdown shall use the redirect message to move traffic 
 to a new relay. If a relay has failed and restarted or been load balanced 
 to a different relay, the client will need to resubscribe to the new relay 
 after setting up the connection.
@@ -78,11 +79,10 @@ is upgrade of the Relay software during operation.
 
 ## Implications of Fragmentation and Reassembly
 
-TODO - Not sure if we need this.
 
 Relay function MUST cache named-data objects items post  assembling the 
-fragmented procedures. The choice of such caching is influence by 
-attributes on the named object - discardable  or is_sync_point, 
+fragmented procedures. The choice of such caching is further influenced by 
+attributes on the named object - discardable or not, for example 
 for example. A given Relay implementation MAY also stored a few 
 of the most recent full named objects regardless of the attributes 
 to support quick sync up to the new subscribers or to support fast 
@@ -92,6 +92,7 @@ When performing the relay function (forwarding), following 2 steps
 needs to be carried out:
 
 1. The fragments are relayed to the subscriber as they arrive
+and should be able to do so out of order as well.
 
 2. The fully assembled fragments are stored based on attributes
  associated with the data and cache local policies.

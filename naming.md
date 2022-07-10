@@ -1,6 +1,6 @@
 # Names and Named Objects
 
-Names are basic elements with in the QUICR architecture and they
+Names are basic elements with in the QuicR architecture and they
 uniquely identify objects. For publishers of the media, the names 
 identify application defined data objects being contributed and
 for the subscribers/receivers, the names correspond to 
@@ -9,7 +9,7 @@ application data objects to be consumed.
 The scope and granularity of the names and the data objects they
 represent are application defined and controlled.
 
-However, a given QUICR name must maintain certain properties 
+However, a given QuicR name must maintain certain properties 
 as given below
 
 * Each published name must be unique and is scoped to a 
@@ -19,34 +19,35 @@ as given below
   for the associated data either by specifying the full or partial names. 
   The latter is supported via wildcarding.
 
-* A QUICR name is composed of 3 components. Domain Identifier, 
-  Application Instance identifier and the Data Identifier. 
-
 * Named objects should enable caching in relays in a way CDNs cache resources 
   and thus can obtain similar benefits such caching mechanisms would offer.
 
 ## Named Objects
 
-The names of each object in QUICR is composed of the following components:
+The names of each object in QuicR is composed of the following components:
 
 1. Domain Identifier
 2. Application Identifier
 3. Data Identifier
 
 Domain component uniquely identifies a given application domain. This is
-like a HTTP Origin or an standardized identifier that uniquely identifies the application and a root relay function. 
+like a HTTP Origin or an standardized identifier that uniquely identifies 
+the application and a root relay function. 
 
 Application component is scoped under a given Domain. This
 component identifies aspects specific to a given application instance
 hosted under a given domain (e.g. which movie or meeting identifier).
 
-Data identifier component is application defined and controlled. In cases
-where media being delivered is naturally grouped into
-independently consumable groups (video group of pictures, for example), 
-this component is composed of set of such groups, which are in turn 
-made up of set of objects (video frames idr, p-frame within a 
-given gop). Each such group is identified by a monotonically increasing integer
-and objects within the group are also identified by another set of monotonically increasing integers. The groupID and objectID start at 0.
+Data identifier identifies aspects of application, for example
+reprsentation_id in a CMAF segment or video stream from a
+conference user. In cases where media being delivered is naturally grouped 
+into independently consumable groups (video group of picture or audio 
+synchronization points for example), this component is futher composed into 
+set of such groups, which are in turn made up of set of objects 
+(video frames idr, p-frame within a  given gop). Each such group is 
+identified by a monotonically increasing integer and objects within the 
+group are also identified by another set of monotonically increasing integers. 
+The groupID and objectID start at 0.
 
 Example: In the example below the domain component identifies
 acme.meeting.com domain, the application component identifies an
@@ -73,17 +74,18 @@ available to Relay(s).
 
 ## Wildcarding with Names
 
-QUICR allows subscribers to request for media based on wildcard'ed
+QuicR allows subscribers to request for media based on wildcard'ed
 names. Wildcarding enables subscribes/requests for media to be made 
 as aggregates instead of at the object level granularity. Wildcard names 
-are formed by skipping the right most segments of the Data Identifier component of the names.
+are formed by skipping the right most segments of the "Data Identifier" 
+component of the names.
  
 For example, in an web conferencing use case, the client may subscribe
 to just the origin, meeting_id and one of the publishers so as to get 
 all the media from that user in a particular. The example matches all
 the named objects published by the user alice in the meeting123.
 
-```QUICR://acme.meeting.com/meeting123/alice/* ```
+```QuicR://acme.meeting.com/meeting123/alice/* ```
 
 When subscribing, there is an option to tell the relay to one of:
 
