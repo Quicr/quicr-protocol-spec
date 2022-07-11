@@ -1,4 +1,4 @@
-# Names and Named Objects
+# Names and Named Objects {#names}
 
 Names are basic elements with in the QuicR architecture and they
 uniquely identify objects. For publishers of the media, the names 
@@ -39,7 +39,7 @@ component identifies aspects specific to a given application instance
 hosted under a given domain (e.g. which movie or meeting identifier).
 
 Data identifier identifies aspects of application, for example
-reprsentation_id in a CMAF segment or video stream from a
+representation_id in a CMAF segment or video stream from a
 conference user. In cases where media being delivered is naturally grouped 
 into independently consumable groups (video group of picture or audio 
 synchronization points for example), this component is futher composed into 
@@ -85,7 +85,7 @@ to just the origin, meeting_id and one of the publishers so as to get
 all the media from that user in a particular. The example matches all
 the named objects published by the user alice in the meeting123.
 
-```QuicR://acme.meeting.com/meeting123/alice/* ```
+```acme.meeting.com/meeting123/alice/* ```
 
 When subscribing, there is an option to tell the relay to one of:
 

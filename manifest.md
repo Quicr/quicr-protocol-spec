@@ -1,4 +1,4 @@
-# QuicR Manifest
+# QuicR Manifest {#manifest}
 
 QuicR Manifests provides a light-weight declarative way for the 
 publishers to advertise their capabilities for publishing media. 
@@ -7,7 +7,8 @@ encoding rates and also use case specific media properties such as
 languages supported. Publisher advertisements 
 are intend to declare publisher's capabilities and a publisher 
 is free to choose a subset of those advertised in the manifest
-as part of the session and thus doesnot require a manifest update.
+as part of the session and thus does not require a manifest update.
+This could be, for example - to change encoding bitrate or the codec used.
 However, in the case where a new capability needs to be advertised, 
 a manifest update MAY be necessary. 
 
@@ -92,31 +93,31 @@ and need not be the only way to encode the manifest.
 
 ```
 
-Given the above manifest, a publisher can produce 3 different streams each
-under its own QuicR name like shown below
+Given the above manifest, if a publisher wants to send a 4k stream, it
+does so by publishing objects following the below pattern
 
 ```
-Publish objects under different qualties
-
-publish: quicr://jon.doe.music.live.tv/video/1234/groupN/objectM ... 
-
-publish: quicr://jon.doe.music.live.tv/video/5678/groupN/objectM ...
-
-publish: quicr://jon.doe.music.live.tv/video/9999/groupN/objectM ...
-
+//4K Stream
+publish: quicr://jon.doe.music.live.tv/video/5678/[groupN/objectM ...]
 ```
 
- and subscriber who is capable of receiving 4K stream shall subscribe to the name
+ 
+If at any point, the producer intends to move to a lower quality stream
+due to underlying network conditions, it can do so by switching the published
+stream as below
 
-`
-subscribe: quicr://jon.doe.music.live.tv/video/5678/*
-`
+```
+//480p Stream
+publish: quicr://jon.doe.music.live.tv/video/9999/[groupN/objectM ...]
+```
 
-If the above subscriber wnats to swtich to a low quality stream, say indicated by congestion control, it 
-can do so by a new subscribe to a name for that qulaity as shown below,
-which happens to be 640x480_30fps av1 codec media stream.
+and subscriber who is capable of receiving any of the qualities can do
+so by
 
-`
-subscribe: quicr://jon.doe.music.live.tv/video/9999/*
-`
+```
+// Receiving any of the published streams and use its name 
+// to know more information about media properties via manifest and
+// object data
+subscribe: quicr://jon.doe.music.live.tv/video/*
+```
 

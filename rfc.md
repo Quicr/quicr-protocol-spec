@@ -1,6 +1,6 @@
 %%%
 title = "QuicR - Media Delivery Protocol over QUIC"
-abbrev = "QuicT Media"
+abbrev = "QuicR Media"
 ipr= "trust200902"
 area = "transport"
 workgroup = ""

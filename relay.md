@@ -23,36 +23,49 @@ require the intermediate servers (caches) and the origin server to implement
 the relay function. However the endpoint themselves can implement the Relay 
 function in a Isomorphic deployment, if needed.
 
-Non normatively, the Relay function is responsible carryout the following 
-actions to enable the QuicR protocol:
+The relays are capable of receiving data in stream mode or in datagram mode. In both modes, relays will cache fragments as they arrive.
 
-1. On reception of subscriptions, forward the message to the 
-Origin server, and on the receipt of successful response, store the 
-subscriber info against the names. If an entry for the name exists already, 
-add the new subscriber to the list of Subscribers. [ See Subscribe Aggregations]. 
+In all modes, the relays maintain a list of connections that will receive new fragments when they are ready: connections from clients that have subscribed to the stream through this relay; and, if the media was received from a client, a connection to the origin to pass the content of the client-posted media to the origin. When new fragments are received, they are posted on the relevant connections as soon as the flow control and congestion control of the underlying QUIC connections allow.
 
-2. If there exists a matching named object for a subscription in the cache, 
-forward the data to the subscriber(s) based on the Subscriber INTENT. 
 
-3. On reception of `publish_intent` message, forward the
- message to the Origin server, and on the receipt of 
- ` publish_intent_ok `, store the names as authorized against a 
- given publisher.
+## Cache and Relaying {#cache-and-relaying}
 
-4. If a named object arrives at the relay via `publish` message , 
-cache the name and the associated data, also distribute the same to 
-all the active subscribers, if any, matching the given name.
+The prototype relays maintain a separate cache of received fragments for each media stream that it is processing. If fragments are received in stream mode, they will arrive in order. If fragments are received in datagram mode, fragments may arrive out of order.
 
-The published named object MUST not be cached longer than the 
-__BESTBEFORE__ time specified. Also to note, the 
-local policies dictated by the caching service provider can always 
-overwrite the caching duration for the published data.
+The cache is created the first time a client connection refers to the media URL. This might be:
 
-Relays MUST NOT modify the either the `name` or the contents of 
-` PUBLISH/SUBSCRIBE` message expect for performing the necessary 
-forwarding and caching operations as described above.
+* A client connection requesting the name, in which case the relay will ask a copy of the media from the origin or the next hop relay towards the origin.
 
-TODO: Define security properties
+* A client connection publishing named data, in which case the relay will post a copy of the media towards the origin.
+
+Once the media is available, the relay will learn the starting group ID and object ID.
+
+
+Fragments are received from the "incoming" connection. If fragments are received in stream mode, they will arrive in order. If fragments are received in datagram mode, fragments may arrive out of order. When receiving in datagram mode, the media order is used to remove incoming duplicate fragments. When a non duplicate fragment is received, it is added to the cache and posted to corresponding subscribers over streams or datagrams,
+when flow and congestion control allow transmissions
+
+In stream mode, the transmission may be delayed until fragments are received in order. If the last fragment received "fills a hole", that fragment and the next available fragments in media order will be forwarded.
+
+## Out of order relaying
+
+As noted in (#cache-and-relaying), fragments that arrive out of order are relayed immediately. 
+
+This design was arrived after trying two alternatives:
+
+-  insisting on full order before relaying, as is done for stream mode;  OR
+
+-  insisting on full reception of all fragments making an object.
+
+Full order would introduce the same head-of-line blocking also visible in stream-based relays. In theory, relaying full objects without requiring that objects be ordered would avoid some of the head-of-line blocking, but in practice we see that some streams contain large and small objects, and that losses affecting fragments of large objects cause almost the same head of line blocking delays as full ordering. Moreover, if losses happen at several places in the relay graph, the delays will accumulate. Out of order relaying avoids these delays.
+
+## Cache cleanup
+
+Relays store objects no more than `best_before` time associated with the 
+object. Congestion/Rate control feedback can further influence what 
+gets cached based on the relative priority and rate at which data 
+can be delivered. Local cache policies can also limit the amount and 
+duration of data that can be cached.
+
 
 ## Relay fail over
 
@@ -77,25 +90,3 @@ This allows for make before break transfer from one relay to another
 so that no data is lost during transition. One of the uses of this 
 is upgrade of the Relay software during operation.
 
-## Implications of Fragmentation and Reassembly
-
-
-Relay function MUST cache named-data objects items post  assembling the 
-fragmented procedures. The choice of such caching is further influenced by 
-attributes on the named object - discardable or not, for example 
-for example. A given Relay implementation MAY also stored a few 
-of the most recent full named objects regardless of the attributes 
-to support quick sync up to the new subscribers or to support fast 
-catchup functionalities.
-
-When performing the relay function (forwarding), following 2 steps 
-needs to be carried out:
-
-1. The fragments are relayed to the subscriber as they arrive
-and should be able to do so out of order as well.
-
-2. The fully assembled fragments are stored based on attributes
- associated with the data and cache local policies.
-
-It is up to the applications to define the right sized fragments 
-as it can influence the latency of the delivery.

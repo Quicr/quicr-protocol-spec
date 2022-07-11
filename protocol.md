@@ -1,4 +1,4 @@
-# QuicR Protocol Design
+# QuicR Protocol Design {#protocol}
 
 QuicR supports delivering media over QUIC Streams as well as over 
 QUIC Datagrams as chosen by the application.
@@ -6,9 +6,9 @@ QUIC Datagrams as chosen by the application.
 Media delivery in QuicR is started by the publisher/subscriber setting
 up a "Control Channel" for a given QuicR name. The control channel, which
 is based on QUIC stream, is used to configure and setup properties for 
-the Media channel. Media data is delivered over the Media Channel setup 
-as QUIC streams or QUIC datagrams based on the application settings. 
-The Control Channel can also be used to configure in-session parameter.
+the "Media Channel". Media data is delivered over the Media Channel over 
+QUIC streams or QUIC datagrams based on the application settings. 
+The Control Channel can also be used to configure in-session parameters.
 
 
 ## Control Channel
@@ -88,9 +88,9 @@ quicr_subscribe_message {
  * }
 ```
 
-The message type will be set to SUBSCRIBE_STREAM (1) if the client wants 
+The message type will be set to SUBSCRIBE\_STREAM (1) if the client wants 
 to receive the media in stream mode (via QUIC streams), or 
-SUBSCRIBE_DATAGRAM (2) if receiving in datagram mode. If in datagram mode, 
+SUBSCRIBE\_DATAGRAM (2) if receiving in datagram mode. If in datagram mode, 
 the client must select a datagram stream id that is 
 not yet used for any other media stream.
 
@@ -146,7 +146,7 @@ enum response
 quicr_subscribe_reply
 {
     Response response
-    [Reason Phrase Length (i)=,
+    [Reason Phrase Length (i),
     [Reason Phrase (..)],
 }
 ```
@@ -177,18 +177,16 @@ quicr_publish_intent_message {
  *     datagram_capable(i)
  * }
 ```
-The message type will be set to PUBLISH_INTENT (6).
+The message type will be set to PUBLISH\_INTENT (6).
 The `datagram_capable` flag is set to 0 if the client can only 
 publish/post data in stream mode, to 1 if the client is also capable 
 of posting media fragments as datagrams.
-
 
  On a successful validation at the Origin server, a 
  `publish_intent_ok` message is returned by the Origin server. 
  The `publish_intent_ok` message is sent in response to the 
  `quicr_publish_intent_message`, on the server side of the QUIC control 
- stream. This message indicates the publisher is authorized for using the intended 
- name provided in  `quicr_publish_intent_message`.
+ stream. This message indicates the publisher is authorized for using the intended name provided in  `quicr_publish_intent_message`.
 
 ```
 quicr_publish_intent_ok_message { 
@@ -198,7 +196,7 @@ quicr_publish_intent_ok_message {
 }
 ```
 
-The message id is set to PUBLISH_INTENT_OK (7). The `use_datagram` flag is set to 
+The message id is set to PUBLISH\_INTENT\_OK (7). The `use_datagram` flag is set to 
 0 if the server wants to receive data in stream mode, and to 1 if the server selects to
 receive data fragments as datagrams. In that case, the server must select a
 datagram stream id that is not yet used to receive any other media stream.
@@ -207,11 +205,7 @@ This message enables cloud relays to know the authorized names from a
 given Publisher. This helps to make caching decisions, deal with collisions 
 and so on. 
  
- `A>A cloud relay could start caching the data associated with the names that has 
- not been validated yet by the origin server and decide to flush its cache 
- if no PUBLISH_INTENT_OK is received within a given implementation defined
- timeout. This is an optimization that would allow publishers to start 
- transmitting the data without needing to wait a RTT.`
+ `A>A cloud relay could start caching the data associated with the names that has not been validated yet by the origin server and decide to flush its cache if no PUBLISH\_INTENT\_OK is received within a given implementation defined timeout. This is an optimization that would allow publishers to start transmitting the data without needing to wait a RTT.`
 
 ### Start Point Message
  
@@ -226,7 +220,8 @@ Object ID set to 0.
  * quicr_start_point_message {
  *     message_type(i),
  *     start_group_id(i),
- *     start_object_id(i)
+ *     start_object_id(i),
+ *     flags(i)
  * }
 ```
 
@@ -234,7 +229,7 @@ The message id is set to START_POINT (8).
 
 ### Fragment Message
 
-The quicr_fragment_message message is used to convey the content of a 
+The quicr\_fragment\_message message is used to convey the content of a 
 media stream as a series of fragments:
 
 ```
@@ -248,6 +243,9 @@ quicr_fragment_message {
  *     length(i),
  *     data(...)
  }
+
+ flags := Reserved (3) | IsDiscardable (1) | Priority (3)
+
 ```
 
 The message type will be set to FRAGMENT (5). The `offset_and_fin` field encodes
@@ -338,7 +336,6 @@ datagram_frame_content {
 }
 ```
 
-
 The datagram header is defined as:
 
 ```
@@ -356,16 +353,16 @@ The datagram header is defined as:
 
 ```
 
-The datagram_stream_id identifies a specific media stream. The ID is chosen by the 
-receiver of the media stream, and conveyed by the Request or Accept messages.
+The datagram_stream_id identifies a specific media stream. The ID is chosen by the receiver of the media stream, and conveyed by the Request or Accept messages.
 
 The `offset_and_fin` field encodes two values, as in:
 ```
 offset_and_fin = 2*offset + is_last_fragment
 ```
 
-The `flags` identifies the relative `priority` of this object and if the object
-can be discarded. This can help Relay to make  dropping/caching decisions.
+The `flags` identifies the relative `priority` of this object and if the object can be discarded. This can help Relay to make dropping/caching decisions. `best_before` identifies the time upto when the data for the given
+object valid. This aids in caches dropping the data after `best_before` and also cease any error recovery mechanisms that might be in progress for the corresponding data. `best_before` can also be used by clients to make 
+send/drop decisions.
 
 The `nb_objects_previous_group` is present if and only if this is the first 
 fragment of the first object in a group, i.e., `object_id` and `offset` are 

@@ -66,60 +66,37 @@ https://github.com/Quicr/quicr-protocol-spec ```
   trust between clients and relays for delivering media. Origin servers 
   MAY implement other QuicR functions, such as Relay function, as necessary.
 
-# QuicR Protocol
+# Overview
 
 At a high level, entities within QuicR architecture publish named media 
 objects and consume media by subscribing to the named objects. Some 
 entities perform "Relay" function providing the store and forward behavior
 to serve the subscription requests, that optimize media delivery latencies
-for local delivery and improved quality via local repairs, wherever applicable. 
-The names used in the QuicR protocol are scoped and authorized to a domain 
-by the Origin serving the domain. 
+for local delivery and improved quality via local repairs, wherever applicable. The names ((#names)) used in the QuicR protocol are scoped and authorized to a domain by the Origin serving that domain. 
 
-## Origin Server
-The Origin serves as the authorization authority for the named resources, 
-in the manner similar to an HTTP origin. QuicR names to be used under 
-a given domain and the application are authorized by the Origin server.
-It is also responsbilbe for establishing necessary trust relationship
-between the clients, the relay and itself
 
-## Relays
-The Relays play an important role  within the QuicR architecture. They receive 
-subscriptions and intent to publish and forwards them towards the origin.
-This may involve sending messages directly to the Origin Relay or possibly 
-traverse another Relay on the path. Replies to theses message follow the reverse 
-direction of the request and when the Origin gives the OK to a subscription or 
-intent to publish, the Relay allows the subscription or future publishes to the 
-Names in the request.
+## Typical Publish/Subscribe Message Exchange
 
-Subscriptions received are aggregated. When a relay receives a publish
-request with data, it will forward it both towards the Origin and to any
-clients or relays that have a matching subscriptions. This "short
-circuit" of distribution by a relay before the data has even reached the
-Origin servers provides significant latency reduction for clients closer
-to the relay.
+A QuicR "Control Channel", based on QUIC streams, is used to setup 
+properties for media delivery over a "Media Channel" which in turn 
+can be over QUIC streams or QUIC datagrams. The Control channel is typically used to setup QuicR names to be used, control media properties during setup and mid-session, start/stop media delivery and so on. The media data itself is sent over the "Media Channel" and carry enough metadata related to relative priority and time-to-live, to enable Relays and end-points to make a forward/drop decisions under congestion, for example. Further details on the messages can be found in (#protocol).
 
-The Relay keeps an outgoing queue of objects to be sent to the each
-subscriber and objects are sent in priority order. Relays MAY cache some 
-of the information for short period of time and the time cached may depend 
-on the origin.
-
-Below example callflow is high-level exchage capturing publish/subscribe 
+Below is an high-level exchange capturing publish/subscribe 
 flow between Alice, the publisher and Bob, Carl, the subscribers 
 and the  interactions that occur between Relays on-path and the origin 
 server. The details on how the trust setup happens between these
 entities are skipped, however.
+
 
 In the exchange depicted following sequence happen
 
 * Alice sets up a control channel (QUIC Stream) to the relay indicating 
 its intent to publish media with name (video1/1) as the representation id. 
 It does so by sending `publish_intent`. video1/1 might represent 
-video stream camera-1, quality-id 1 (HD), for example. QuicR manifests
-are used to setup and consume the names being published.
+video stream camera-1, quality-id 1 (HD), for example. QuicR manifests ((#manifest)) are used to setup and consume the names being published.
 
 * On receiving the `publish_intent` from Alice, the Relay 
-setups another control channel to the authorized Origin server and
+sets up another control channel to the authorized Origin server and
 forwards Alice's `publish_intent` message.
 
 * Once `publish_intent_ok` is received from the Origin, Relay
@@ -127,7 +104,7 @@ forwards the same to Alice to enable publishing the media
 over the media channel [QUIC Stream or QUIC Datagram]
 
 * In the meanwhile, Bob and Carl subscribe to receiving media
-corresponding to the wildcard'ed name (video1/*). They each 
+corresponding to the wildcard'ed name (video1/\*). They each 
 send `subscribe` messages to the Relay on the control channel and 
 the same is forwarded by the Relay to the Origin. Successful subscribe 
 responses are sent back to Bob and via the relay. Relay makes
@@ -141,7 +118,7 @@ or QUIC Datagram as chosen by Alice.
 * Media from Alice gets cached at the relay and is forwarded to the 
 Origin server (optionally). On noting about interested subscribers,
 the media received from Alice is forwarded to both Bob and Carl 
-from the local cache.
+from the local cache by the Relay.
 
 
 
@@ -210,4 +187,33 @@ from the local cache.
     │             │            │                                  │
 
 ~~~
-{: title="Pub/Sub flow between Alice(publisher), Bob, Carl (subscirbers), Relay and Origin"}
+{: title="Pub/Sub flow between Alice(publisher), Bob, Carl (subscribers), Relay and Origin"}
+
+
+## Origin Server
+
+The Origin serves as the authorization authority for the named resources, 
+in the manner similar to an HTTP origin. QuicR names to be used under 
+a given domain and the application are authorized by the Origin server.
+It is also responsible for establishing necessary trust relationship
+between the clients, the relay and itself.
+
+## Relays
+
+The Relays play an important role  within the QuicR architecture. They receive  subscriptions and intent to publish and forwards them towards the origin. This may involve sending messages directly to the Origin Relay or possibly traverse another Relay on the path. Replies to theses message follow the reverse direction of the request and when the Origin gives the OK to a subscription or intent to publish, the Relay allows the subscription or future publishes to the Names in the request.
+
+Subscriptions received are aggregated. When a relay receives a publish
+request with data, it will forward it both towards the Origin and to any
+clients or relays that have a matching subscriptions. This "short
+circuit" of distribution by a relay before the data has even reached the
+Origin servers provides significant latency reduction for clients closer
+to the relay.
+
+The Relay keeps an outgoing queue of objects to be sent to the each
+subscriber and objects are sent in priority order. Relays MAY cache some 
+of the information for short period of time and the time cached may depend 
+on the origin.
+
+(#relay_behavior) covers further details on the Relay functionality.
+
+
