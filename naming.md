@@ -57,12 +57,12 @@ being published as object 17 under group 15.
 
 ```
 Example 1
-acme.meeting.com/meeting123/alice/cam5/HiRes/15/17
+quicr://acme.meeting.com/meeting123/alice/cam5/HiRes/15/17
 ```
 
 ```
 Example 2
-twitch.com/channel-fluffy/video-quality-id/group12/object0
+quicr://twitch.com/channel-fluffy/video-quality-id/group12/object0
 ```
 
 Once a named object is created, the content inside the named object can
@@ -85,7 +85,7 @@ to just the origin, meeting_id and one of the publishers so as to get
 all the media from that user in a particular. The example matches all
 the named objects published by the user alice in the meeting123.
 
-```acme.meeting.com/meeting123/alice/* ```
+```quicr://acme.meeting.com/meeting123/alice/* ```
 
 When subscribing, there is an option to tell the relay to one of:
 
