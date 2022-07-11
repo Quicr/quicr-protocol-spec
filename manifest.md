@@ -18,10 +18,14 @@ Manifest objects are also scoped to a domain and the application under a
 given Origin server.
 
 Subscribers can retrieve the manifest for a given session by subscribing
-to the well-known manifest QuicR name. On retrieving 
-the manifest, Subscribers/Receivers of the media can discover names 
-being published and in turn request media for the corresponding
-names by sending appropriate subscriptions (with wildcarding as necessary).
+to the well-known manifest QuicR name. On retrieving the manifest, Subscribers/Receivers of the media can discover names being published and proceed to request media for the corresponding names by sending appropriate subscriptions (with wildcarding as necessary).
+
+A representative well-known name for subscribing to manifest updates for channel-2, twitch live session jon.doe.music.live.tv, can be represented as
+
+```
+quicr://jon.doe.music.live.tv/channel-2/manifest/*
+```
+
 
 At any point in the session, updated manifest is pushed to the subscribers
 like any media objects are delivered to the subscribers of the manifest

@@ -69,17 +69,15 @@ https://github.com/Quicr/quicr-protocol-spec ```
 # Overview
 
 At a high level, entities within QuicR architecture publish named media 
-objects and consume media by subscribing to the named objects. Some 
-entities perform "Relay" function providing the store and forward behavior
-to serve the subscription requests, that optimize media delivery latencies
-for local delivery and improved quality via local repairs, wherever applicable. The names ((#names)) used in the QuicR protocol are scoped and authorized to a domain by the Origin serving that domain. 
+objects that are end-to-end encrypted and consume media by subscribing to the named objects. The published data carry metadata identifying relative priority, time-to-live and other useful metadata that's authenticated for components implementing Relay functions to make drop/forwarding decisions.
+Entities that perform "Relay" function provide the store and forward behavior to serve the subscription requests, they optimize media delivery latencies through local delivery and improved media quality via local repairs, wherever applicable. The names ((#names)) used in the QuicR protocol are scoped and authorized to a domain by the Origin serving that domain. 
 
 
 ## Typical Publish/Subscribe Message Exchange
 
 A QuicR "Control Channel", based on QUIC streams, is used to setup 
 properties for media delivery over a "Media Channel" which in turn 
-can be over QUIC streams or QUIC datagrams. The Control channel is typically used to setup QuicR names to be used, control media properties during setup and mid-session, start/stop media delivery and so on. The media data itself is sent over the "Media Channel" and carry enough metadata related to relative priority and time-to-live, to enable Relays and end-points to make a forward/drop decisions under congestion, for example. Further details on the messages can be found in (#protocol).
+can be over QUIC streams or QUIC datagrams. The Control channel is typically used to setup QuicR names to be used, control media properties during setup and mid-session, start/stop media delivery and so on. The media data itself is sent over the "Media Channel" and carry enough metadata to enable Relays and end-points to make a forward/drop decisions under congestion, for example. Further details on the messages can be found in (#protocol).
 
 Below is an high-level exchange capturing publish/subscribe 
 flow between Alice, the publisher and Bob, Carl, the subscribers 
@@ -200,7 +198,8 @@ between the clients, the relay and itself.
 
 ## Relays
 
-The Relays play an important role  within the QuicR architecture. They receive  subscriptions and intent to publish and forwards them towards the origin. This may involve sending messages directly to the Origin Relay or possibly traverse another Relay on the path. Replies to theses message follow the reverse direction of the request and when the Origin gives the OK to a subscription or intent to publish, the Relay allows the subscription or future publishes to the Names in the request.
+The Relays play an important role within the QuicR architecture. They receive subscriptions and intent to publish and forwards them towards the origin. This may involve sending messages directly to the Origin Relay or possibly traverse another Relay on the path. Replies to theses message follow the reverse direction of the request and when the Origin gives the OK to a subscription or intent to publish, the Relay allows the subscription or future publishes to the Names in the request. In this role, the Relays 
+perform the role of subscribers (consumers) as well as publishers (producers).
 
 Subscriptions received are aggregated. When a relay receives a publish
 request with data, it will forward it both towards the Origin and to any
@@ -210,9 +209,7 @@ Origin servers provides significant latency reduction for clients closer
 to the relay.
 
 The Relay keeps an outgoing queue of objects to be sent to the each
-subscriber and objects are sent in priority order. Relays MAY cache some 
-of the information for short period of time and the time cached may depend 
-on the origin.
+subscriber and objects are sent in strict priority order. Relays MAY cache some of the information for short period of time and the time cached may depend on the origin and local cache policies.
 
 (#relay_behavior) covers further details on the Relay functionality.
 

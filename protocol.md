@@ -339,7 +339,7 @@ datagram_frame_content {
 The datagram header is defined as:
 
 ```
- * quicrq_datagram_header { 
+ * quicr_datagram_header { 
  *     datagram_stream_id (i),
  *     group_id (i),
  *     object_id (i),
@@ -369,6 +369,4 @@ fragment of the first object in a group, i.e., `object_id` and `offset` are
 both zero. The number indicates how many objects were sent
 in the previous groups. It enables receiver to check whether all these 
 objects have been received.
-
-Relays may forward fragments even if they arrive out of order.
 

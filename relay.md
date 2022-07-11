@@ -40,7 +40,6 @@ The cache is created the first time a client connection refers to the media URL.
 
 Once the media is available, the relay will learn the starting group ID and object ID.
 
-
 Fragments are received from the "incoming" connection. If fragments are received in stream mode, they will arrive in order. If fragments are received in datagram mode, fragments may arrive out of order. When receiving in datagram mode, the media order is used to remove incoming duplicate fragments. When a non duplicate fragment is received, it is added to the cache and posted to corresponding subscribers over streams or datagrams,
 when flow and congestion control allow transmissions
 
@@ -50,13 +49,17 @@ In stream mode, the transmission may be delayed until fragments are received in 
 
 As noted in (#cache-and-relaying), fragments that arrive out of order are relayed immediately. 
 
-This design was arrived after trying two alternatives:
+This design has better properties compared to the following alternatives:
 
 -  insisting on full order before relaying, as is done for stream mode;  OR
 
 -  insisting on full reception of all fragments making an object.
 
-Full order would introduce the same head-of-line blocking also visible in stream-based relays. In theory, relaying full objects without requiring that objects be ordered would avoid some of the head-of-line blocking, but in practice we see that some streams contain large and small objects, and that losses affecting fragments of large objects cause almost the same head of line blocking delays as full ordering. Moreover, if losses happen at several places in the relay graph, the delays will accumulate. Out of order relaying avoids these delays.
+Full order would introduce the same head-of-line blocking also visible in stream-based relays. In theory, relaying full objects without requiring that objects be ordered would avoid some of the head-of-line blocking, but in practice it is observed when some streams contain large and small objects, and that losses affecting fragments of large objects cause almost the same head of line blocking delays as full ordering. Moreover, if losses happen at several places in the relay graph, the delays will accumulate. Out of order relaying avoids these delays.
+
+## Relay or Cache or  Drop Decisions
+
+Relays makes use of priority, time-to-live, is_discardable metadata properties from the published data to make forward or drop decisions when reacting to congestion as indicated by the underlying QUIC stack. The same can be used to make caching decisions.
 
 ## Cache cleanup
 
